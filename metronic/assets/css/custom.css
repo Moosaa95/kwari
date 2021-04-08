@@ -1,0 +1,47 @@
+.grouping {
+    padding: 1em;
+    }
+
+.grouping legend {
+  padding: 0.2em 0.5em;
+  font-size:15px;
+  text-align:right;
+  }
+
+.grouping-default{
+    border:1px solid;
+    color: #000;
+}
+
+.grouping-transfer{
+    border:1px solid green;
+    color:green;
+}
+
+.grouping-withdrawal{
+    border:1px solid blue;
+    color:blue;
+}
+
+.grouping-bill{
+    border:1px solid red;
+    color:red;
+}
+
+
+table td {
+    font-size: 1.1rem;
+    font-weight: 300;
+}
+
+/*.kt-header--fixed .kt-header {*/
+/*    z-index: 100 !important;*/
+/*}*/
+
+/*.kt-header--fixed.kt-subheader--fixed .kt-subheader {*/
+/*    z-index: 100 !important;*/
+/*}*/
+
+.datepicker {
+    z-index: 101 !important;
+}

@@ -1,0 +1,151 @@
+{%extends "includes/base.html"%}
+{%block aside_menu%}
+    {%include "includes/aside_menu.html"%}
+{%endblock%}
+{%block top_menu%}
+    {%include "includes/top_menu.html"%}
+{%endblock%}
+{%block title%}Dashboard{%endblock%}
+{%block dashboard%}Dashboard{%endblock%}
+{%block page%}{%endblock%}
+{%block datepicker%}
+    <a href="#" class="btn kt-subheader__btn-daterange" id="kt_dashboard_daterangepicker" data-toggle="kt-tooltip" title="Select dashboard daterange" data-placement="left">
+        <span class="kt-subheader__btn-daterange-title" id="kt_dashboard_daterangepicker_title"></span>&nbsp;
+        <span class="kt-subheader__btn-daterange-date" id="kt_dashboard_daterangepicker_date"></span>
+        <i class="flaticon2-calendar-1"></i>
+    </a>
+{%endblock%}
+{%block content%}
+    {#    Transactions#}
+    <div class="col-xl-12 order-lg-2 order-xl-1">
+        <div class="card-deck">
+                <!-- Start Card 1 -->
+                <div class="card chart-card">
+                    <!-- Card content -->
+                    <div class="card-body pb-0">
+                        <!-- Title -->
+                        <div class="d-flex justify-content-between">
+                            <h4 class="card-title font-weight-bold">Stock</h4>
+                            <div class="align-self-end pb-2">
+                            </div>
+                        </div>
+                        <!-- Text -->
+                        <p class="card-text mb-4">Total Stock</p>
+                        <div class="d-flex justify-content-between">
+                            <p class="display-4 align-self-end"><span id="successfulTransaction">0</span><span class="text-muted" style="font-size: 12px"><sub>/successful</sub></span> </p>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <p class="align-self-end pb-2 text-success">
+                                Yesterday:<span id="yesterdaySuccessfulTransaction">0</span>
+                                <span class="text-muted" style="font-size: 12px"><sub>/successful</sub></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Card 1 -->
+
+                <!-- Start Card 2 -->
+                <div class="card chart-card">
+                    <!-- Card content -->
+                    <div class="card-body pb-0">
+                        <!-- Title -->
+                        <div class="d-flex justify-content-between">
+                            <h4 class="card-title font-weight-bold">Sales</h4>
+                            <div class="align-self-end pb-2">
+                            </div>
+                        </div>
+                        <!-- Text -->
+                        <p class="card-text mb-4">Total Sales Today</p>
+                        <div class="d-flex justify-content-between">
+                            <p class="display-4 align-self-end"><span id="successfulWithTxn">0</span><span class="text-muted" style="font-size: 12px"><sub>/successful</sub></span> </p>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <p class="align-self-end pb-2 text-success">
+                                Value:<span id="withTxnValue">0</span>
+                                <span class="text-muted" style="font-size: 12px"><sub>/successful</sub></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Card 2 -->
+
+                <!-- Start Card 3 -->
+                <div class="card chart-card">
+                    <!-- Card content -->
+                    <div class="card-body pb-0">
+                        <!-- Title -->
+                        <div class="d-flex justify-content-between">
+                            <h4 class="card-title font-weight-bold">Stock Left</h4>
+                            <div class="align-self-end pb-2">
+                            </div>
+                        </div>
+                        <!-- Text -->
+                        <p class="card-text mb-4">Total stock remaining</p>
+                        <div class="d-flex justify-content-between">
+                            <p class="display-4 align-self-end"><span id="stockLeft">0</span><span class="text-muted" style="font-size: 12px"><sub>/successful</sub></span> </p>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <p class="align-self-end pb-2 text-success">
+                                Value:<span id="stockLeftValue">0</span>
+                                <span class="text-muted" style="font-size: 12px"><sub>/successful</sub></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Card 3 -->
+        </div>
+    </div>
+    {#    Transactions#}
+
+{#  sales trend #}
+    <div class="col-xl-12 order-lg-2 order-xl-1">
+        <div class="card chart-card" id="agentBalanceCard">
+            <!-- Card content -->
+            <div class="card-body pb-0">
+                <!-- Title -->
+                <h4 class="card-title font-weight-bold">Statistics</h4>
+                <!-- Classic tabs -->
+                <div class="classic-tabs">
+                    <!-- Nav tabs -->
+                    <ul class="nav tabs-white nav-fill" role="tablist">
+                        <li class="nav-item ml-0">
+                            <a class="nav-link waves-light active" data-toggle="tab" href="#txn-chart" role="tab">Sales</a>
+                        </li>
+                        <li class="nav-item ml-0">
+                            <a class="nav-link waves-light" data-toggle="tab" href="#txn-chart" role="tab">Products</a>
+                        </li>
+
+                        <li class="nav-item ml-0">
+                            <a class="nav-link waves-light" data-toggle="tab" href="#txn-chart" role="tab">Agents</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content rounded-bottom">
+                        <!--Panel 1-->
+                        <div class="tab-pane fade in show active" id="txn-chart" role="tabpanel">
+                            <canvas id="myChart" height="250px"></canvas>
+                        </div>
+                        <!--/.Panel 1-->
+
+                        <!--Panel 2-->
+                        <div class="tab-pane fade in show" id="txn-chart2" role="tabpanel">
+                            <canvas id="myChart2" height="250px"></canvas>
+                        </div>
+                        <!--/.Panel 2-->
+
+                        <!--Panel 3-->
+                        <div class="tab-pane fade in show" id="txn-chart3" role="tabpanel">
+                            <canvas id="myChart3" height="250px"></canvas>
+                        </div>
+                        <!--/.Panel 3-->
+                    </div>
+                </div>
+                <!-- Classic tabs -->
+            </div>
+        </div>
+    </div>
+{%endblock%}
+
+{%block scripts%}
+<script src="/static/assets/js/app.js" type="text/javascript"></script>
+<script src="/static/assets/js/pages/dashboard_charts.js" type="text/javascript"></script>
+{%endblock%}
