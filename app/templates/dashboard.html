@@ -1,11 +1,16 @@
 {%extends "includes/base.html"%}
+{% block title_pager %}
+    {% with title_pager="Dashboard" %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
 {%block aside_menu%}
-    {%include "includes/aside_menu.html"%}
+    {%include "includes/aside_menu.html" %}
 {%endblock%}
 {%block top_menu%}
-    {%include "includes/top_menu.html"%}
+    {%include "includes/top_menu.html" with headertitle="Dashboard" %}
 {%endblock%}
-{%block title%}Dashboard{%endblock%}
+{%block title%}Accounts{%endblock%}
 {%block dashboard%}Dashboard{%endblock%}
 {%block page%}{%endblock%}
 {%block datepicker%}

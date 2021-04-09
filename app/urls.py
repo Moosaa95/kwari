@@ -17,5 +17,6 @@ urlpatterns = [
     #################################################################
     path('fetch_agents', GetAgentsList.as_view(), name="fetch_agents"),
     path('create_agent', CreateAgent.as_view(), name="create_agent"),
+    path('kwari_products', GetProductsList.as_view(), name="kwari_products"),
 
 ]

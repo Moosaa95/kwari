@@ -100,7 +100,8 @@ class ActivityLogs(models.Model):
         logs = cls.objects.select_related().filter(**kwargs)
         if logs.count != 0:
             for log in logs:
-                log_data = {"activity": log.activity.name, "user": log.user.user_id, "date": log.date}
+                log_data = {"activity": log.activity.name,
+                            "user": log.user.user_id, "date": log.date}
                 log_list.append(log_data)
             data = {"status": True, "logs": log_list, "count": logs.count}
         else:
@@ -121,7 +122,8 @@ class Agent(ModelMixin):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     surname = models.CharField(max_length=50, blank=True, null=True)
     other_name = models.CharField(max_length=50, blank=True, null=True)
-    gender = models.CharField(max_length=50, choices=GENDER_CHOICES, blank=True, null=True)
+    gender = models.CharField(
+        max_length=50, choices=GENDER_CHOICES, blank=True, null=True)
     business_name = models.CharField(max_length=255, blank=True, null=True)
     mobile_number = models.CharField(max_length=12, unique=True)
     email = models.EmailField(max_length=255, null=True, blank=True)
@@ -165,7 +167,8 @@ class Agent(ModelMixin):
     @classmethod
     def update_agent(cls, **kwargs):
         with transaction.atomic():
-            agent = cls.objects.filter(agent_id=kwargs['agent_id']).update(**kwargs)
+            agent = cls.objects.filter(
+                agent_id=kwargs['agent_id']).update(**kwargs)
             if agent:
                 return {'status': True, "message": "agent details updated"}
             else:
@@ -213,7 +216,8 @@ class Agent(ModelMixin):
         )
         # print(66666666666666)
         # print(buying_agents)
-        agent_summary = dict(number_agents=number_agents, buying_agents=buying_agents)
+        agent_summary = dict(number_agents=number_agents,
+                             buying_agents=buying_agents)
         return agent_summary
 
     @classmethod
@@ -280,7 +284,8 @@ class AccountLogin(models.Model):
             credentials.pin = cls.hash_password(pin)
             credentials.password = None
             credentials.transaction_pin = None
-            credentials.save(update_fields=['pin', 'password', 'transaction_pin'])
+            credentials.save(
+                update_fields=['pin', 'password', 'transaction_pin'])
             return True
         except cls.DoesNotExist:
             return False
@@ -390,7 +395,8 @@ class Account(ModelMixin):
     )
 
     account_number = models.CharField(max_length=12, unique=True)
-    bank_account_number = models.CharField(max_length=255, null=True, blank=True)
+    bank_account_number = models.CharField(
+        max_length=255, null=True, blank=True)
     bank_name = models.CharField(max_length=255, null=True, blank=True)
     bank_code = models.CharField(max_length=255, null=True, blank=True)
     account_type = models.CharField(max_length=10, default='primary')
@@ -411,7 +417,7 @@ class Account(ModelMixin):
         pass
 
     def __str__(self):
-        return "%s_%s" % (self.account_number, self.account_name)
+        return "%s_%s" % (self.name, self.account_name)
 
     @classmethod
     def create_account(cls, **kwargs):
@@ -469,8 +475,10 @@ class Account(ModelMixin):
     @classmethod
     def get_secondary_accounts(cls, account_id):
         try:
-            primary_account = cls.objects.select_related('agent').get(id=account_id)
-            secondary_accounts = cls.objects.filter(agent=primary_account.agent).values()
+            primary_account = cls.objects.select_related(
+                'agent').get(id=account_id)
+            secondary_accounts = cls.objects.filter(
+                agent=primary_account.agent).values()
             return secondary_accounts
         except cls.DoesNotExist:
             return None
@@ -511,7 +519,8 @@ class Account(ModelMixin):
             )
 
         if commission:
-            new_commission = cls.objects.get(id=account_id).commission + Decimal(commission)
+            new_commission = cls.objects.get(
+                id=account_id).commission + Decimal(commission)
             cls.objects.filter(id=account_id).update(
                 balance=new_balance,
                 commission=new_commission
@@ -538,7 +547,8 @@ class Account(ModelMixin):
                 account.commission = new_commission
                 account.commission_due = commission_due
                 account.commission_due_status = status
-                account.save(update_fields=['commission', 'commission_due', 'commission_due_status'])
+                account.save(update_fields=[
+                             'commission', 'commission_due', 'commission_due_status'])
                 return True
             except Exception as e:
                 print(e)
@@ -598,13 +608,14 @@ class Account(ModelMixin):
                                                          status='packaged'),
                      to_attr='packaged'
                      )
-            )
+        )
 
         for acc in accounts:
             acc_dict = dict(name=acc.agent.first_name + ' ' + acc.agent.surname,
                             agent_id=acc.agent.id,
                             status=acc.agent.status)
-            acc_dict['purchases'] = len(acc.purchases)  # acc.transaction_set.all().count()
+            # acc.transaction_set.all().count()
+            acc_dict['purchases'] = len(acc.purchases)
             acc_dict['packaged'] = len(acc.packaged)
             accounts_list.append(acc_dict)
         return accounts_list
@@ -664,30 +675,38 @@ class Transaction(ModelMixin):
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True)
+    product = models.ForeignKey(
+        'Product', on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     amount = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     reference_number = models.CharField(max_length=10, unique=True)
     third_party_ref = models.CharField(max_length=255, null=True, blank=True)
-    beneficiary_account_name = models.CharField(max_length=255, null=True, blank=True)
+    beneficiary_account_name = models.CharField(
+        max_length=255, null=True, blank=True)
     account_number = models.CharField(max_length=255, null=True, blank=True)
     bank = models.CharField(max_length=255, null=True, blank=True)
     fi = models.CharField(max_length=255, null=True, blank=True)
     remarks = models.CharField(max_length=255, null=True, blank=True)
 
     charges = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    service_charges = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    service_charges = models.DecimalField(
+        default=0, max_digits=19, decimal_places=2)
+    balance_before = models.DecimalField(
+        default=0, max_digits=19, decimal_places=2)
+    balance_after = models.DecimalField(
+        default=0, max_digits=19, decimal_places=2)
 
     transaction_type = models.CharField(max_length=255, choices=TXN_TYPE)
-    transaction_description = models.CharField(max_length=255, null=True, blank=True)
+    transaction_description = models.CharField(
+        max_length=255, null=True, blank=True)
     transaction_date = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=10, choices=STATUS, default="successful")
+    status = models.CharField(
+        max_length=10, choices=STATUS, default="successful")
     is_reversed = models.BooleanField(default=False)
     is_reversal = models.BooleanField(default=False)
     is_lien = models.BooleanField(default=False)
-    parent = models.ForeignKey('Transaction', on_delete=models.SET_NULL, null=True, blank=True)
+    parent = models.ForeignKey(
+        'Transaction', on_delete=models.SET_NULL, null=True, blank=True)
 
     objects = models.Manager()
 
@@ -726,7 +745,8 @@ class Transaction(ModelMixin):
                     remarks=kwargs['remarks'],
                     balance_before=kwargs['balance_before'],
                     balance_after=kwargs['balance_after'],
-                    charges=kwargs['agent_commission'] + kwargs['company_commission'] + kwargs['bank_charges'],
+                    charges=kwargs['agent_commission'] +
+                    kwargs['company_commission'] + kwargs['bank_charges'],
                     agent_commission=kwargs['agent_commission'],
                     company_commission=kwargs['company_commission'],
                     bank_charges=kwargs['bank_charges'],
@@ -763,7 +783,8 @@ class Transaction(ModelMixin):
                         remarks=kwargs['remarks'],
                         balance_before=kwargs['balance_before'],
                         balance_after=kwargs['balance_after'],
-                        charges=kwargs['agent_commission'] + kwargs['company_commission'] + kwargs['bank_charges'],
+                        charges=kwargs['agent_commission'] +
+                        kwargs['company_commission'] + kwargs['bank_charges'],
                         agent_commission=kwargs['agent_commission'],
                         company_commission=kwargs['company_commission'],
                         bank_charges=kwargs['bank_charges'],
@@ -892,7 +913,8 @@ class Transaction(ModelMixin):
 
     @classmethod
     def update_transaction_details(cls, reference_number, **kwargs):
-        update = cls.objects.filter(reference_number=reference_number).update(**kwargs)
+        update = cls.objects.filter(
+            reference_number=reference_number).update(**kwargs)
         return update
 
     @classmethod
@@ -920,8 +942,10 @@ class Transaction(ModelMixin):
         else:
             created_at = timezone.now().date()
         values = cls.objects.values('account_id').annotate(num_transfers=Count('id'),
-                                                           bank_transfers_net=Sum('amount'),
-                                                           charges=Sum('charges')
+                                                           bank_transfers_net=Sum(
+                                                               'amount'),
+                                                           charges=Sum(
+                                                               'charges')
                                                            ).filter(account_id=account_id,
                                                                     service_id=1,
                                                                     is_reversed=False,
@@ -943,15 +967,18 @@ class Transaction(ModelMixin):
         )
         past_day = date.day - 1
         past_day_date = date.replace(day=past_day)
-        closing_query = cls.objects.filter(account_id=account_id, created_at__startswith=date).order_by('-created_at')[:1]
-        opening_query = cls.objects.filter(account_id=account_id, created_at__startswith=past_day_date).order_by('-created_at')[:1]
+        closing_query = cls.objects.filter(
+            account_id=account_id, created_at__startswith=date).order_by('-created_at')[:1]
+        opening_query = cls.objects.filter(
+            account_id=account_id, created_at__startswith=past_day_date).order_by('-created_at')[:1]
         if closing_query.count() == 0:
             return False
         if opening_query.count() == 0:
-            opening_balance=0
+            opening_balance = 0
         else:
             opening_balance = opening_query[0].balance_after
-        summary = dict(closing_balance=closing_query[0].balance_after, opening_balance=opening_balance, commissions=query['commissions'])
+        summary = dict(closing_balance=closing_query[0].balance_after,
+                       opening_balance=opening_balance, commissions=query['commissions'])
         summary.update(bills_summary)
         summary.update(withdrawal_summary)
         summary.update(transfer_summary)
@@ -998,7 +1025,7 @@ class Transaction(ModelMixin):
 
 
 class Category(ModelMixin):
-    name = models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=20, unique=True)
 
     objects = models.Manager()
 
@@ -1013,17 +1040,18 @@ class Category(ModelMixin):
 
 
 class Product(ModelMixin):
-    category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL)
-    name = models.CharField(max_length=10, unique=True)
+    category = models.ForeignKey(
+        Category, null=True, on_delete=models.SET_NULL)
+    name = models.CharField(max_length=255, unique=True)
     quantity = models.IntegerField(default=0)
-    unit_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    agent_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    quantity_left = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    unit_price = models.DecimalField(
+        default=0, max_digits=19, decimal_places=2)
+    agent_price = models.DecimalField(
+        default=0, max_digits=19, decimal_places=2)
+    quantity_left = models.IntegerField(default=0)
     in_stock = models.BooleanField(default=True)
-    stock_date = models.BooleanField(null=True, blank=True)
+    stock_date = models.DateTimeField(default=timezone.now)
     sold_date = models.DateTimeField(null=True, blank=True)
-
-    agent = models.ForeignKey('Agent', on_delete=models.CASCADE)
 
     objects = models.Manager()
 
@@ -1063,15 +1091,18 @@ class Product(ModelMixin):
     @classmethod
     def get_products(cls, in_stock=None, sold=None):
         if not in_stock and not sold:
-            products = cls.objects.values()
-            return products
-        filters = dict()
-        if in_stock:
-            filters['in_stock'] = True
-        if sold:
-            filters['in_stock'] = False
-        products = cls.objects.filter(**filters).values('id', 'account_number', 'account_name')
-        return products
+            products = cls.objects.values('name', 'quantity', 'category__name', 'unit_price',
+                                          'agent_price', 'quantity_left', 'in_stock', 'stock_date', 'sold_date')
+        else:
+            filters = dict()
+            if in_stock:
+                filters['in_stock'] = True
+            if sold:
+                filters['in_stock'] = False
+            products = cls.objects.filter(**filters).values('name', 'quantity', 'category__name', 'unit_price',
+                                                            'agent_price', 'quantity_left', 'in_stock', 'stock_date', 'sold_date')
+
+        return list(products)
 
     @classmethod
     def get_balance(cls, account_id):
@@ -1092,7 +1123,8 @@ class Product(ModelMixin):
         else:
             quantity_left = quantity - number
 
-        update = cls.objects.filter(id=product_id).update(quantity_left=quantity_left)
+        update = cls.objects.filter(id=product_id).update(
+            quantity_left=quantity_left)
         return update
 
     @classmethod
@@ -1109,7 +1141,8 @@ class ProductImage(ModelMixin):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
-    image = models.ImageField(null=True, blank=True, upload_to="media/products")
+    image = models.ImageField(null=True, blank=True,
+                              upload_to="media/products")
 
     objects = models.Manager()
 
@@ -1133,14 +1166,16 @@ class ProductImage(ModelMixin):
     @classmethod
     def get_product_images(cls, product_id):
         try:
-            images = cls.objects.filter(product_id=product_id).values_list('image', flat=True)
+            images = cls.objects.filter(
+                product_id=product_id).values_list('image', flat=True)
             return images
         except cls.DoesNotExist:
             return None
 
     @classmethod
     def get_product_image(cls, product_id):
-        images = cls.objects.select_related('Product').filter(product_id=product_id)
+        images = cls.objects.select_related(
+            'Product').filter(product_id=product_id)
         return images
 
 

@@ -89,7 +89,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'kwari_online'),
         'USER': os.environ.get('PGUSER', 'postgres'),
-        'PASSWORD': os.environ.get('PGPASSWORD', 'postgres'),
+        'PASSWORD': os.environ.get('PGPASSWORD', 'Ast@l@v33'),
         'HOST': os.environ.get('PGHOST', '127.0.0.1'),
         'PORT': os.environ.get('PGPORT', '5432'),
     },

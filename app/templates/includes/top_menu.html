@@ -4,7 +4,9 @@
             <li class="kt-menu__item  kt-menu__item--active " aria-haspopup="true">
                 <a href="dashboard" class="kt-menu__link ">
                     <span class="kt-menu__link-text">
-                        Dashboard
+                        {% block headertitle %}
+                          {{ headertitle }}
+                        {% endblock headertitle %}
                     </span>
                 </a>
             </li>
