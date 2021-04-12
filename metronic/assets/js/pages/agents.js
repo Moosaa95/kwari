@@ -1,6 +1,6 @@
+const table = $('#agentsTable');
 const AgentsTable = (function () {
 	const initTable1 = function () {
-		const table = $('#agentsTable');
 		// begin first table
 		table.DataTable({
 			responsive: true,
@@ -71,6 +71,9 @@ const AgentsTable = (function () {
 		//main function to initiate the module
 		init: function () {
 			initTable1();
+		},
+		refresh: function(){
+			table.DataTable().ajax.reload();
 		}
 	};
 })();

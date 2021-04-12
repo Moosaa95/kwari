@@ -1051,7 +1051,7 @@ class Product(ModelMixin):
     quantity_left = models.IntegerField(default=0)
     in_stock = models.BooleanField(default=True)
     stock_date = models.DateTimeField(default=timezone.now)
-    sold_date = models.DateTimeField(null=True, blank=True)
+    sold_date = models.DateTimeField(null=True)
 
     objects = models.Manager()
 
@@ -1093,12 +1093,14 @@ class Product(ModelMixin):
         if not in_stock and not sold:
             products = cls.objects.values('name', 'quantity', 'category__name', 'unit_price',
                                           'agent_price', 'quantity_left', 'in_stock', 'stock_date', 'sold_date')
+            print('whyyy')
         else:
             filters = dict()
-            if in_stock:
+            if in_stock == True:
                 filters['in_stock'] = True
-            if sold:
+            elif sold:
                 filters['in_stock'] = False
+
             products = cls.objects.filter(**filters).values('name', 'quantity', 'category__name', 'unit_price',
                                                             'agent_price', 'quantity_left', 'in_stock', 'stock_date', 'sold_date')
 

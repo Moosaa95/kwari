@@ -95,5 +95,8 @@ class GetProductsList(APIView):
         else:
             data['in_stock'] = False
         product = Product.create_product(**data)
-        print(product)
-        return JsonResponse(data=product)
+        if product and type(product) is not dict: 
+            return JsonResponse(data={"status": True})
+        else:
+            return JsonResponse(data={'status': False, 'message': product['message']})
+            

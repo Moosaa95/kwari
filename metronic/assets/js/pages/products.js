@@ -1,9 +1,8 @@
+const table = $('#productsTable');
+
+console.log($('#activeAccountTab').hasClass('active'))
 var ProductTable = (function () {
-	var initTable1 = function () {
-		const table = $('#productsTable');
-		// const query_params = $('#activeAccountTab').hasClass('active')
-		// 	? { in_stock: true, sold: false }
-		// 	: {};
+	var initTable1 = function (query_params) {
 		// begin first table
 		table.DataTable({
 			responsive: true,
@@ -13,7 +12,7 @@ var ProductTable = (function () {
 			ajax: {
 				url: '/app/kwari_products',
 				type: 'GET',
-				data: $('#activeAccountTab').hasClass('active') ? { in_stock: true } : {},
+				data: query_params,
 				dataSrc: function (data) {
 					var count = 0;
 					var tableData = $.map(data, function (obj) {
@@ -60,36 +59,47 @@ var ProductTable = (function () {
 		});
 	};
 
-	var refreshTable1 = function () {
-		var table = $('#productsTable');
+	var refreshTable1 = function (query_params) {
 		// begin first table
-		table.DataTable().ajax.reload();
+		table.dataTable().fnDestroy();
+		initTable1(query_params);
+		// table.DataTable().ajax.reload();
 	};
 
 	return {
+
 		//main function to initiate the module
 		init: function () {
-			initTable1();
+			//compute query params
+		const query_params = { in_stock: true };
+			initTable1(query_params);
 		},
-		refresh: function () {
-			refreshTable1();
+		refresh: function (query_params) {
+			
+			refreshTable1(query_params);
 		}
 	};
 })();
+
+//on clicking 'product in stock' tab
+	$('#activeAccountTab').on('click', () => {
+		//compute query params
+		const query_params = { in_stock: true };
+		ProductTable.refresh(query_params);
+	});
+
+	//on clicking 'product out of stock' tab
+	$('#inactiveAccountTab').on('click', () => {
+		//compute query params
+const query_params = { sold: true };
+
+		ProductTable.refresh(query_params);
+	});
 
 $(document).ready(function () {
 	let editDetails = {};
 	ProductTable.init();
 
-	//on clicking 'product in stock' tab
-	$('#activeAccountTab').on('click', () => {
-		ProductTable.refresh();
-	});
-
-	//on clicking 'product out of stock' tab
-	$('#inactiveAccountTab').on('click', () => {
-		ProductTable.refresh();
-	});
 
 	// $('#addTerminalModal').on('show-bs-modal', function (e) {
 	// 	$('#stampDuty').prop('checked', true);
@@ -104,10 +114,22 @@ $(document).ready(function () {
 				);
 			},
 			success: function (response, status, xhr, $form) {
-				if (response) {
+				if (response.status) {
 					$('#addProductModal').modal('hide');
 					ProductTable.refresh();
 				} else {
+					$('#addProductModal').modal('hide');
+					$.notify(
+						{
+							// options
+							icon: 'glyphicon glyphicon-warning-sign',
+							title: '',
+							message: 'Product creation failed'
+						},
+						{
+							type: 'danger'
+						}
+					);
 					console.log('please try again');
 				}
 				$('#createProduct').removeClass(
