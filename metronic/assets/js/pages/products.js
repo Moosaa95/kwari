@@ -75,7 +75,6 @@ var ProductTable = (function () {
 			initTable1(query_params);
 		},
 		refresh: function (query_params) {
-			
 			refreshTable1(query_params);
 		}
 	};
@@ -97,7 +96,6 @@ const query_params = { sold: true };
 	});
 
 $(document).ready(function () {
-	let editDetails = {};
 	ProductTable.init();
 
 
