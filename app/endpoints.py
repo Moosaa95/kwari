@@ -26,7 +26,7 @@ from rest_framework.views import APIView
 
 # Local
 # from agent.functions import send_request, money_format
-from .models import Agent, Account, AccountLogin, ReferenceNumbers, Transaction, Product
+from .models import Agent, Account, AccountLogin, ReferenceNumbers, Transaction, Product, ProductImage
 # from .tasks import send_email, manual_funding
 # from .mixins import ActiveAgentRequiredMixin
 from .tasks import send_email
@@ -67,7 +67,7 @@ class CreateAgent(APIView):
             return JsonResponse(data={'status': False, 'message': new_agent['message']})
 
 
-class GetProductsList(APIView):
+class ProductsList(APIView):
     def get(self, request):
         in_stock = request.query_params.get('in_stock', None)
         sold = request.query_params.get('sold', None)
@@ -95,8 +95,21 @@ class GetProductsList(APIView):
         else:
             data['in_stock'] = False
         product = Product.create_product(**data)
-        if product and type(product) is not dict: 
+        if product and type(product) is not dict:
             return JsonResponse(data={"status": True})
         else:
             return JsonResponse(data={'status': False, 'message': product['message']})
-            
+
+
+class ProductImageRequest(APIView):
+    def post(self, request):
+        data = dict(request.POST.dict())
+        compressedImage = ProductImage.compressImage(request.FILES['image'])
+        data['image'] = compressedImage
+        print(data)
+        productImage = ProductImage.create_product_image(
+            **data)
+        if productImage and type(productImage) is not dict:
+            return JsonResponse(data={'status': True})
+        else:
+            return JsonResponse(data={"status": False, 'message': productImage['message']})

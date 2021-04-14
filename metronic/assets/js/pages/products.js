@@ -1,6 +1,6 @@
 const table = $('#productsTable');
 
-console.log($('#activeAccountTab').hasClass('active'))
+console.log($('#activeAccountTab').hasClass('active'));
 var ProductTable = (function () {
 	var initTable1 = function (query_params) {
 		// begin first table
@@ -49,8 +49,10 @@ var ProductTable = (function () {
 									  <i class="la la-ellipsis-h"></i>
 									</a>
 									<div class="dropdown-menu dropdown-menu-right">
-										<a class="dropdown-item" href="#" data-toggle="modal" data-target="#editTerminalModal" data-terminal="${full.id}"><i class="la la-edit"></i>Edit</a>
-										<a class="dropdown-item" href="#" id="deleteTerminal" data-terminal="${full.id}"><i class="la la-trash"></i>Delete</a>
+									<a class="dropdown-item" href="#" id="addProductImage" data-target="#addProductImageModal" data-toggle="modal" data-product="${full.sn}"><i class="la la-image"></i>Add Product Image</a>
+										<a class="dropdown-item" href="#" data-toggle="modal" data-target="#editProductModal" data-product="${full.sn}"><i class="la la-edit"></i>Edit</a>
+										<a class="dropdown-item" href="#" id="deleteTerminal" data-product="${full.sn}"><i class="la la-trash"></i>Delete</a>
+										
 									</div>
 								</span>`;
 					}
@@ -59,7 +61,7 @@ var ProductTable = (function () {
 		});
 	};
 
-	var refreshTable1 = function (query_params) {
+	var destroyTable1 = function (query_params) {
 		// begin first table
 		table.dataTable().fnDestroy();
 		initTable1(query_params);
@@ -67,37 +69,35 @@ var ProductTable = (function () {
 	};
 
 	return {
-
 		//main function to initiate the module
 		init: function () {
 			//compute query params
-		const query_params = { in_stock: true };
+			const query_params = { in_stock: true };
 			initTable1(query_params);
 		},
-		refresh: function (query_params) {
-			refreshTable1(query_params);
+		destroy: function (query_params) {
+			destroyTable1(query_params);
 		}
 	};
 })();
 
 //on clicking 'product in stock' tab
-	$('#activeAccountTab').on('click', () => {
-		//compute query params
-		const query_params = { in_stock: true };
-		ProductTable.refresh(query_params);
-	});
+$('#activeAccountTab').on('click', () => {
+	//compute query params
+	const query_params = { in_stock: true };
+	ProductTable.destroy(query_params);
+});
 
-	//on clicking 'product out of stock' tab
-	$('#inactiveAccountTab').on('click', () => {
-		//compute query params
-const query_params = { sold: true };
+//on clicking 'product out of stock' tab
+$('#inactiveAccountTab').on('click', () => {
+	//compute query params
+	const query_params = { sold: true };
 
-		ProductTable.refresh(query_params);
-	});
+	ProductTable.destroy(query_params);
+});
 
 $(document).ready(function () {
 	ProductTable.init();
-
 
 	// $('#addTerminalModal').on('show-bs-modal', function (e) {
 	// 	$('#stampDuty').prop('checked', true);
@@ -137,115 +137,106 @@ $(document).ready(function () {
 		});
 	});
 
-	// $(document).on('click', '#deleteTerminal', function (e) {
-	// 	e.preventDefault();
-	// 	// var terminal = $(e.target).data('terminal');
-	// 	const terminal = $(e.currentTarget).data('terminal');
-	// 	console.log(terminal);
-	// 	$.ajax({
-	// 		url: '/agent/delete_terminal',
-	// 		type: 'POST',
-	// 		dataType: 'json',
-	// 		data: { terminal_id: terminal },
-	// 		success: function (response) {
-	// 			if (response.result) {
-	// 				TerminalTable.refresh();
-	// 			} else {
-	// 				alert('you can not delete terminal');
-	// 			}
-	// 		}
-	// 	});
-	// });
+	$('#editTerminalModal').on('show.bs.modal', function (e) {
+		const editTerminalContent = $('#editTerminalContent');
+		terminal_id = $(e.relatedTarget).data('product');
+		$.post('/agent/get_terminal_detail', { terminal_id: terminal_id }, function (response, status) {
+			editTerminalContent.empty();
+			if (response.status && response.terminal_detail) {
+				stampDuty = response.terminal_detail['has_stamp_duty'];
+				status = response.terminal_detail['status'];
+				delete response.terminal_detail['has_stamp_duty'];
+				delete response.terminal_detail['status'];
 
-	// $('#editTerminalModal').on('show.bs.modal', function (e) {
-	// 	const editTerminalContent = $('#editTerminalContent');
-	// 	terminal_id = $(e.relatedTarget).data('terminal');
-	// 	$.post('/agent/get_terminal_detail', { terminal_id: terminal_id }, function (response, status) {
-	// 		editTerminalContent.empty();
-	// 		if (response.status && response.terminal_detail) {
-	// 			stampDuty = response.terminal_detail['has_stamp_duty'];
-	// 			status = response.terminal_detail['status'];
-	// 			delete response.terminal_detail['has_stamp_duty'];
-	// 			delete response.terminal_detail['status'];
+				$.each(response.terminal_detail, function (key, value) {
+					editTerminalContent.append(
+						`<div class="form-group">
+                                <label for="${key}" class="form-control-label">${key}</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"></span>
+                                    </div>
+                                    <input type="text" class="form-control form-input addComma" name=${key} value="${value}"/>
+                                </div>
+                            </div>`
+					);
+				});
+				editTerminalContent.append(
+					`<div class="form-group row">
+							<div class="col-lg-6">
+								<label for="stampDuty" class="form-control-label">Has Stamp Duty</label>
+								<div class="input-group">
+									<span class="kt-switch kt-switch--icon">
+										<label>
+											<input type="checkbox" name="has_stamp_duty" class="form-control switch-input" checked="" id="stampDuty">
+												<span></span>
+										</label>
+									</span>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<label for="status" class="form-control-label">Status</label>
+								<div class="input-group">
+									<span class="kt-switch kt-switch--icon">
+										<label>
+											<input type="checkbox" name="status" class="form-control switch-input" checked="" id="status">
+												<span></span>
+										</label>
+									</span>
+								</div>
+							</div>
+						</div>`
+				);
+			}
 
-	// 			$.each(response.terminal_detail, function (key, value) {
-	// 				editTerminalContent.append(
-	// 					`<div class="form-group">
-	//                               <label for="${key}" class="form-control-label">${key}</label>
-	//                               <div class="input-group">
-	//                                   <div class="input-group-prepend">
-	//                                       <span class="input-group-text"></span>
-	//                                   </div>
-	//                                   <input type="text" class="form-control form-input addComma" name=${key} value="${value}"/>
-	//                               </div>
-	//                           </div>`
-	// 				);
-	// 			});
-	// 			editTerminalContent.append(
-	// 				`<div class="form-group row">
-	// 						<div class="col-lg-6">
-	// 							<label for="stampDuty" class="form-control-label">Has Stamp Duty</label>
-	// 							<div class="input-group">
-	// 								<span class="kt-switch kt-switch--icon">
-	// 									<label>
-	// 										<input type="checkbox" name="has_stamp_duty" class="form-control switch-input" checked="" id="stampDuty">
-	// 											<span></span>
-	// 									</label>
-	// 								</span>
-	// 							</div>
-	// 						</div>
-	// 						<div class="col-lg-6">
-	// 							<label for="status" class="form-control-label">Status</label>
-	// 							<div class="input-group">
-	// 								<span class="kt-switch kt-switch--icon">
-	// 									<label>
-	// 										<input type="checkbox" name="status" class="form-control switch-input" checked="" id="status">
-	// 											<span></span>
-	// 									</label>
-	// 								</span>
-	// 							</div>
-	// 						</div>
-	// 					</div>`
-	// 			);
-	// 		}
+			$('#stampDuty').prop('checked', stampDuty);
+			$('#status').prop('checked', status);
 
-	// 		$('#stampDuty').prop('checked', stampDuty);
-	// 		$('#status').prop('checked', status);
+			$('.form-input').on('change', function (e) {
+				editDetails[$(this).prop('name')] = $(this).val();
+			});
 
-	// 		// $('#stampDuty').on('change',function(){
-	// 		// 	stampDuty =  $(this).prop('checked');
-	// 		// 	console.log(status);
-	// 		// });
-	// 		//
-	// 		// $('#status').on('change',function(){
-	// 		// 	status =  $(this).prop('checked');
-	// 		// 	console.log(status);
-	// 		// });
+			$('.switch-input').on('change', function (e) {
+				editDetails[$(this).prop('name')] = $(this).prop('checked');
+			});
+		});
+	});
 
-	// 		$('.form-input').on('change', function (e) {
-	// 			editDetails[$(this).prop('name')] = $(this).val();
-	// 		});
-
-	// 		$('.switch-input').on('change', function (e) {
-	// 			editDetails[$(this).prop('name')] = $(this).prop('checked');
-	// 		});
-	// 	});
-	// });
-
-	// $('#saveEdits').on('click', function (e) {
-	// 	e.preventDefault();
-	// 	$.ajax({
-	// 		url: '/agent/edit_terminal',
-	// 		type: 'POST',
-	// 		dataType: 'json',
-	// 		data: { details: JSON.stringify(editDetails), terminal_id: terminal_id },
-	// 		success: function (response) {
-	// 			if (response.status) {
-	// 				$('#editTerminalModal').modal('hide');
-	// 			} else {
-	// 				alert('you can not edit terminal.');
-	// 			}
-	// 		}
-	// 	});
-	// });
+	$('#createProductImage').on('click', function (e) {
+		product_id = $('#addProductImage').data('product');
+		$('#addProductImageForm').ajaxSubmit({
+			url: '/app/kwari_products/image',
+			beforeSend: function () {
+				$('#createProductImage').addClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+			},
+			data: {
+				product_id
+			},
+			success: function (response, status, xhr, $form) {
+				if (response.status) {
+					$('#addProductImageModal').modal('hide');
+					ProductTable.destroy();
+				} else {
+					$('#addProductImageModal').modal('hide');
+					$.notify(
+						{
+							// options
+							icon: 'glyphicon glyphicon-warning-sign',
+							title: '',
+							message: 'Failed to add image'
+						},
+						{
+							type: 'danger'
+						}
+					);
+					console.log('please try again');
+				}
+				$('#createProductImage').removeClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+			}
+		});
+	});
 });

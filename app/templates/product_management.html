@@ -10,8 +10,8 @@
 {%block top_menu%}
 {%include "includes/top_menu.html" with headertitle="Products" %}
 {%endblock%}
-{%block title%}Accounts{%endblock%}
-{%block dashboard%}Accounts{%endblock%}
+{%block title%}Products{%endblock%}
+{%block dashboard%}Products{%endblock%}
 {%block page%}{%endblock%}
 {%block content%}
 
@@ -58,19 +58,24 @@
           <form class="kt-form kt-form--fit kt-margin-b-20">
             <div class="row kt-margin-b-20">
               <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
-                <label>Name:</label>
-                <input type="text" class="form-control kt-input" placeholder="E.g: 4590" data-col-index="0">
+                <label>Product Name:</label>
+                <input type="text" class="form-control kt-input" placeholder="E.g: Samsung Galaxy" data-col-index="0">
               </div>
               <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
-                <label>Agent:</label>
+                <label>Category:</label>
                 <select class="form-control kt-input" data-col-index="2">
                   <option value="">Select</option>
+                  {% for category in categories  %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                  {% endfor %}
                 </select>
               </div>
               <div class="col-lg-3 kt-margin-b-10-tablet-and-mobile">
-                <label>Status:</label>
+                <label>In Stock:</label>
                 <select class="form-control kt-input" data-col-index="6">
                   <option value="">Select</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
                 </select>
               </div>
             </div>
@@ -166,6 +171,8 @@
   </div>
 
     {% include "modals/addproducts.html" with categories=categories %}
+
+    {% include "modals/addproductImage.html" %}
 
 </div>
 {%endblock%}

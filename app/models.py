@@ -6,10 +6,13 @@ import calendar
 import hashlib
 from base64 import b64encode
 from decimal import Decimal
+from io import BytesIO
+from django.core.files import File
 
 # third-party
 from operator import itemgetter
 import simplejson as json
+from PIL import Image
 
 import requests
 
@@ -1158,12 +1161,20 @@ class ProductImage(ModelMixin):
         return "%s_%s" % (self.name, self.product.name)
 
     @classmethod
+    def compressImage(cls, image):
+        im = Image.open(image)
+        imageObj = BytesIO()
+
+        im.save(imageObj, format='JPEG', quality=70)
+        return File(imageObj, name=image.name)
+
+    @classmethod
     def create_product_image(cls, **kwargs):
         try:
             product = cls.objects.create(**kwargs)
             return product
         except IntegrityError as e:
-            return {'account': None, "message": e.args[0]}
+            return {"message": e.args[0]}
 
     @classmethod
     def get_product_images(cls, product_id):
