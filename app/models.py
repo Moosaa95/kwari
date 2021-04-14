@@ -1147,7 +1147,7 @@ class ProductImage(ModelMixin):
     name = models.CharField(max_length=255, null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
     image = models.ImageField(null=True, blank=True,
-                              upload_to="media/products")
+                              upload_to="products")
 
     objects = models.Manager()
 
