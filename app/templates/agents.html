@@ -1,12 +1,17 @@
 {%extends "includes/base.html"%}
+{% block title_pager %}
+    {% with title_pager="Agents" %}
+        {{ block.super }}
+    {% endwith %}
+{% endblock %}
 {%block aside_menu%}
     {%include "includes/aside_menu.html"%}
 {%endblock%}
 {%block top_menu%}
-    {%include "includes/top_menu.html"%}
+    {%include "includes/top_menu.html" with headertitle="Agents" %}
 {%endblock%}
-{%block title%}Accounts{%endblock%}
-{%block dashboard%}Accounts{%endblock%}
+{%block title%}Agents{%endblock%}
+{%block dashboard%}Agents{%endblock%}
 {%block page%}{%endblock%}
 {%block content%}
 

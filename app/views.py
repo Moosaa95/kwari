@@ -9,7 +9,7 @@ from django.views.generic import FormView
 from django.views.generic.base import View
 
 from .functions import money_format
-from .models import Agent, Account, Transaction
+from .models import Agent, Account, Transaction, Category, Product
 from login.models import User
 
 
@@ -45,11 +45,19 @@ class AgentView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
 
 class ProductsManagementView(LoginRequiredMixin, PermissionRequiredMixin, View):
-    template = "terminal_management.html"
+    template = "product_management.html"
     permission = "staff"
     context = {}
 
     def get(self, request, *args, **kwargs):
+        total_products = len(Product.objects.all());
+        tpis = len(Product.objects.filter(in_stock=True));
+        tpos = len(Product.objects.filter(in_stock=False));
+        categories = Category.objects.all()
+        self.context['categories'] = categories
+        self.context['total_products'] = total_products
+        self.context['tpis'] = tpis
+        self.context['tpos'] = tpos
         return render(request, self.template, self.context)
 
 
@@ -70,4 +78,3 @@ class ReportsView(LoginRequiredMixin, PermissionRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         self.context['merchant_id'] = settings.MERCHANT_ID
         return render(request, self.template, self.context)
-
