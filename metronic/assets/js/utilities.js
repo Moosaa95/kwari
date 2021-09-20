@@ -234,8 +234,8 @@ function isNumber(str) {
 }
 
 function commaSeparator(nStr) {
-    var nStr1=nStr.replace(/,/g, "");
-    var patt = new RegExp(/(\d+)(\d{3})/);
+    let nStr1=nStr.replace(/,/g, "");
+    const patt = new RegExp(/(\d+)(\d{3})/);
     while (patt.test(nStr1)) {
         nStr1=nStr1.replace(patt, '$1,$2');
     }
@@ -245,3 +245,29 @@ function commaSeparator(nStr) {
 function removeCommas(number) {
     return number.replace(/,/g, "");
 }
+
+function serializeForm(selector) {
+    let formData = {};
+    const formValues = $(selector).serializeArray();
+    $.each(formValues, (i, { name, value }) => {
+        if (value && value !== 'default') formData[name] = value;
+    });
+    return formData;
+}
+
+function showNotify(message, type){
+    const icon = type === 'success' ? 'glyphicon glyphicon-ok' : 'glyphicon glyphicon-warning-sign'
+
+    $.notify(
+        {
+            // options
+            icon: icon,
+            title: '',
+            message: message
+        },
+        {
+            type: type
+        }
+    );
+}
+

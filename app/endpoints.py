@@ -26,90 +26,98 @@ from rest_framework.views import APIView
 
 # Local
 # from agent.functions import send_request, money_format
-from .models import Agent, Account, AccountLogin, ReferenceNumbers, Transaction, Product, ProductImage
+from .models import (
+    Agent,
+    Account,
+    AccountLogin,
+    ReferenceNumbers,
+    Transaction,
+    Product,
+    ProductImage,
+)
+
 # from .tasks import send_email, manual_funding
 # from .mixins import ActiveAgentRequiredMixin
 from .tasks import send_email
 
 
 class GetAgentsList(APIView):
-    def post(self, request):
-        agents_list = Account.fetch_accounts()
-        print(111111111111111111111)
-        print(agents_list)
-        print(11111111111111)
+    @staticmethod
+    def post(request):
+        agents_list = Agent.fetch_agents()
         return JsonResponse(agents_list, safe=False)
 
 
-# @method_decorator(csrf_exempt, name='dispatch')
 class CreateAgent(APIView):
     def post(self, request):
-
         data = dict(request.POST.dict())
-        if data['status'] == 'on':
-            data['status'] = True
+        if data["status"] == "on":
+            data["status"] = True
         else:
-            data['status'] = False
+            data["status"] = False
 
-        pin = get_random_string(length=6, allowed_chars='1234567890')
+        pin = get_random_string(length=6, allowed_chars="1234567890")
 
-        message = f"Welcome to {settings.APP_NAME}.\n kindly use the username and pin below to " \
-                  f"login and change your password.\n" \
-                  f"USERNAME:{data['mobile_number']}\nPIN:{pin}"
-        new_agent = Agent.create_agent(
-            **data,
-            pin=pin
+        message = (
+            f"Welcome to {settings.APP_NAME}.\n kindly use the username and pin below to "
+            f"login and change your password.\n"
+            f"USERNAME:{data['mobile_number']}\nPIN:{pin}"
         )
+        new_agent = Agent.create_agent(**data, pin=pin)
         if new_agent and type(new_agent) is not dict:
-            send_email(data['email'], message)
-            return JsonResponse(data={'status': True})
+            send_email(data["email"], message)
+            return JsonResponse(data={"status": True})
         else:
-            return JsonResponse(data={'status': False, 'message': new_agent['message']})
+            return JsonResponse(data={"status": False, "message": new_agent["message"]})
 
 
-class ProductsList(APIView):
-    def get(self, request):
-        in_stock = request.query_params.get('in_stock', None)
-        sold = request.query_params.get('sold', None)
+class GetProducts(APIView):
+    @staticmethod
+    def get(request):
+        in_stock = request.query_params.get("in_stock", None)
+        sold = request.query_params.get("sold", None)
         products = Product.get_products(in_stock=in_stock, sold=sold)
         return JsonResponse(data=products, safe=False)
 
-        # if in_stock:
-        #     products = Product.get_products(in_stock=True, sold=None)
-        #     print(products)
-        # else:
-        #     products = Product.get_products(in_stock=True, sold=None)
-        #     print(products)
 
-        # if request.query_params.get('in_stock'):
-        #     products = Product.get_products(in_stock=True, sold=None)
-        #     print(products)
-        #     return JsonResponse(products, safe=False)
-        # else:
-        #     products = Product.get_products(in_stock=None, sold=None)
-        #     return JsonResponse(products, safe=False)
-    def post(self, request):
+class CreateProduct(APIView):
+    @staticmethod
+    def post(request):
         data = dict(request.POST.dict())
-        if data['in_stock'] == 'on':
-            data['in_stock'] = True
+        if data["in_stock"] == "on":
+            data["in_stock"] = True
         else:
-            data['in_stock'] = False
+            data["in_stock"] = False
         product = Product.create_product(**data)
+
         if product and type(product) is not dict:
             return JsonResponse(data={"status": True})
         else:
-            return JsonResponse(data={'status': False, 'message': product['message']})
+            return JsonResponse(data={"status": False, "message": product["message"]})
 
 
-class ProductImageRequest(APIView):
-    def post(self, request):
+class AddProductImage(APIView):
+    @staticmethod
+    def post(request):
         data = dict(request.POST.dict())
-        compressedImage = ProductImage.compressImage(request.FILES['image'])
-        data['image'] = compressedImage
-        print(data)
-        productImage = ProductImage.create_product_image(
-            **data)
-        if productImage and type(productImage) is not dict:
-            return JsonResponse(data={'status': True})
+        compressed_image = ProductImage.compress_image(request.FILES["image"])
+        data["image"] = compressed_image
+        product_image = ProductImage.create_product_image(**data)
+        if product_image and type(product_image) is not dict:
+            return JsonResponse(data={"status": True})
         else:
-            return JsonResponse(data={"status": False, 'message': productImage['message']})
+            return JsonResponse(
+                data={"status": False, "message": product_image["message"]}
+            )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GetHomeProductsImages(APIView):
+    def post(self, request):
+        tag = request.query_params.get("tag", None)
+        if not tag:
+            tag = "latest"
+        products = ProductImage.get_products_and_images(
+            filters={"product__tags__tag_id": tag}
+        )
+        return JsonResponse(data=products, safe=False)

@@ -20,25 +20,20 @@ const TransactionsTable = function(tableData) {
 			columns: [
 				{data: 'sn'},
 				{data: 'status'},
-                {data: 'account__account_name'},
+                {data: 'agent__name'},
                 {data: 'transaction_description'},
-                {data: 'terminal_id'},
+                {data: 'product__name'},
+                {data: 'quantity'},
                 {data: 'amount'},
                 {data: 'charges'},
-                {data: 'agent_commission'},
-                {data: 'fi'},
                 {data: 'account_number'},
-                {data: 'beneficiary_account_name'},
-                {data: 'bank'},
                 {data: 'reference_number'},
                 {data: 'third_party_ref'},
-                {data: 'token'},
                 {data: 'balance_before'},
                 {data: 'balance_after'},
                 {data: 'transaction_type'},
                 {data: 'transaction_date'},
-                {data: 'created_at'},
-                {data: 'is_reversed'},
+                {data: 'is_refund'},
 				{data: 'Actions', responsivePriority: -1},
 			],
 			columnDefs: [
@@ -65,12 +60,7 @@ const TransactionsTable = function(tableData) {
                                       <i class="la la-ellipsis-h"></i>
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-right">
-                                        <a class="dropdown-item" data-data=${data} id="reverseTransaction" href="#null"
-                                        data-toggle='modal', data-target='#reverseModal'>
-                                            <i class="la la-edit"></i>Reverse
-                                        </a>
                                         <a class="dropdown-item" href="#"><i class="la la-leaf"></i>Update Status</a>
-                                        <a class="dropdown-item" href="#"><i class="la la-print"></i>Generate Report</a>
                                     </div>
                                 </span>
                                 `;
@@ -102,23 +92,18 @@ const TransactionsTable = function(tableData) {
                         return moment(data).format("dddd, MMMM Do YYYY, h:mm:ss a");
                     },
                 },
-                {
-                    targets: -4,
-                    render: function(data, type, full, meta) {
-                        return moment(data).format("dddd, MMMM Do YYYY, h:mm:ss a");
-                    },
-                },
+
 				{
-					targets: -21,
+					targets: -16,
 					render: function(data, type, full, meta) {
-						var status = {
-							successful: {'title': 'Successful', 'class': ' kt-badge--success'},
+						const status = {
+							paid: {'title': 'Successful', 'class': ' kt-badge--success'},
 							pending: {'title': 'Pending', 'class': ' kt-badge--warning'},
 							failed: {'title': 'Failed', 'class': ' kt-badge--danger'},
-//							4: {'title': 'Warning', 'class': 'kt-badge--brand'},
-//							5: {'title': 'Info', 'class': ' kt-badge--info'},
-//							6: {'title': 'Delivered', 'class': ' kt-badge--danger'},
-//							7: {'title': 'Canceled', 'class': ' kt-badge--primary'},
+                            packaged: {'title': 'Warning', 'class': 'kt-badge--brand'},
+							collected: {'title': 'Info', 'class': ' kt-badge--info'},
+							// 6: {'title': 'Delivered', 'class': ' kt-badge--danger'},
+							// 7: {'title': 'Canceled', 'class': ' kt-badge--primary'},
 						};
 						if (typeof status[data] === 'undefined') {
 							return data;
@@ -156,7 +141,7 @@ $(document).ready(function() {
 	const formData = {}
 
     $.post(
-        '/agent/get_transaction_options',
+        '/app/get_transaction_options',
         {},
         function(response, status){
             const services = $.map( response.services, function(obj) {

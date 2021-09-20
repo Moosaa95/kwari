@@ -1,0 +1,97 @@
+{%extends "include/base.html"%}
+{%block header%}
+<header class="bg-white style2 pt-3 pb-0 pos-fixed">
+	<div class="row">
+		<div class="col-sm-4 text-left pos-top">
+			<a href="#" class="menu-btn mt-0" id="sidebar-right"><span></span></a>
+		</div>
+		<div class="col-sm-4 text-center pos-top">
+			<a href="#" class="logo d-block mt-1"><img src="/static/agent/images/logo.png" alt=""></a>
+		</div>
+		<div class="col-sm-4 text-right pos-top">
+			<a href="#" class="cart-btn mt-1"><i class="ti-shopping-cart"></i><span>1</span></a>
+		</div>
+	</div>
+</header>
+{%endblock%}
+{%block modal%}
+<div class="modal fade" id="accountDetails" tabindex="-1" role="dialog" aria-labelledby="tsqModal" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addTerminalLabel">Payment Details</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+			</div>
+			<div class="modal-body" id="content">
+				<p>
+					Kindly transfer the payable amount into the below account.
+				</p>
+				<div class="payment-card">
+					<!--				<div class="logo-card"><img src="/static/agent/images/gp.png" alt="logo"></div>-->
+					<span class="bal">Payable Amount <b>&#8358;</b><b id="payableAmount">1500</b></span>
+					<span class="card-no ml-0 mt-3"><b>**** **** ****</b></span>
+					<span class="card-no ml-0 mt-3" id="accountNumber">90771799935</span><span>account number</span>
+					<span class="card-no ml-0 mt-3" id="bank">VFD Bank</span><span>Bank</span>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+{%endblock%}
+{%block content%}
+{{product_data|json_script:"prodData"}}
+<div class="app-body single-item p-0">
+	<div class="row">
+		<div class="col-sm-12 mb-3">
+			<div class="owl-carousel owl-theme single-product owl-diot" id="productImages">
+<!--				<div class="item"><img src="https://via.placeholder.com/375x610.png" alt="product"></div>-->
+<!--				<div class="item"><img src="https://via.placeholder.com/375x610.png" alt="product"></div>-->
+<!--				<div class="item"><img src="https://via.placeholder.com/375x610.png" alt="product"></div>-->
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="app-body single-item pr-4 pl-4 pt-0">
+	<div class="row">
+		<div class="col-sm-12 mb-3 content-div text-center">
+			<span class="tag">New Arrivals</span>
+			<h4 class="item-title" id="name">Camisole Adjustable Straps</h4>
+			<div class="payment-card">
+<!--				<div class="logo-card"><img src="/static/agent/images/gp.png" alt="logo"></div>-->
+				<span class="bal">Price <b>&#8358;</b><b id="price">1500</b></span>
+				<span class="card-no ml-0 mt-3"><b>**** **** ****</b></span>
+				<span class="card-no ml-0 mt-3" id="qty">4312</span><span>available</span>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12 mb-3 content-div text-center">
+			<h5 class="item-price">
+				<span>Service Charge&nbsp;<i>&#8358;</i>20</span>
+			</h5>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12 pr-2">
+			<input type="number" step="1" min="1" max="" name="quantity" value="1" title="Qty" class="form-control" size="4" pattern="" inputmode="">
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12 mt-4 content-div text-left">
+			<a href="#" class="bg-red-gradiant fw-600 mt-2 next-tour btn btn-lg text-center w-100 text-white" id="purchase"><i class="ti-shopping-cart mr-2"></i>Buy</a>
+			<a href="#" class="bg-blue fw-600 mt-2 next-tour btn btn-lg text-center w-100 text-white" id="share"><i class="ti-share mr-2"></i>share</a>
+			<hr>
+			<span class="item-subtitle mb-2 mt-2 fw-600">Description</span>
+			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Consequatur quam aspernatur beatae soluta eum laborum. Iusto totam velit tempora nobis doloribus ipsum nulla dolorem laboriosam.</p>
+			<hr>
+		</div>
+	</div>
+</div>
+{%endblock%}
+{%block script%}
+<script src="/static/agent/js/pages/product_detail.js" type="text/javascript"></script>
+{%endblock%}

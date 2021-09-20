@@ -37,10 +37,10 @@ class AgentView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         agents_summary = Agent.get_agents_summary()
-        self.context['number_agents'] = agents_summary['number_agents']
-        if not agents_summary['buying_agents']['count']:
-            agents_summary['buying_agents']['count'] = 0
-        self.context['buying_agents'] = agents_summary['buying_agents']['count']
+        self.context["number_agents"] = agents_summary["number_agents"]
+        if not agents_summary["buying_agents"]["count"]:
+            agents_summary["buying_agents"]["count"] = 0
+        self.context["buying_agents"] = agents_summary["buying_agents"]["count"]
         return render(request, self.template, self.context)
 
 
@@ -50,20 +50,20 @@ class ProductsManagementView(LoginRequiredMixin, PermissionRequiredMixin, View):
     context = {}
 
     def get(self, request, *args, **kwargs):
-        total_products = len(Product.objects.all());
-        tpis = len(Product.objects.filter(in_stock=True));
-        tpos = len(Product.objects.filter(in_stock=False));
+        total_products = len(Product.objects.all())
+        tpis = len(Product.objects.filter(in_stock=True))
+        tpos = len(Product.objects.filter(in_stock=False))
         categories = Category.objects.all()
-        self.context['categories'] = categories
-        self.context['total_products'] = total_products
-        self.context['tpis'] = tpis
-        self.context['tpos'] = tpos
+        self.context["categories"] = categories
+        self.context["total_products"] = total_products
+        self.context["tpis"] = tpis
+        self.context["tpos"] = tpos
         return render(request, self.template, self.context)
 
 
 class TransactionsView(LoginRequiredMixin, PermissionRequiredMixin, View):
     template = "transactions.html"
-    permission = 'staff'
+    permission = "staff"
     context = {}
 
     def get(self, request, *args, **kwargs):
@@ -72,9 +72,9 @@ class TransactionsView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
 class ReportsView(LoginRequiredMixin, PermissionRequiredMixin, View):
     template = "reports.html"
-    permission = 'staff'
+    permission = "staff"
     context = {}
 
     def get(self, request, *args, **kwargs):
-        self.context['merchant_id'] = settings.MERCHANT_ID
+        self.context["merchant_id"] = settings.MERCHANT_ID
         return render(request, self.template, self.context)
