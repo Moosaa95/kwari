@@ -1,0 +1,15 @@
+bank_list.py
+script.py
+agency_banking/settings.py
+.idea/dictionaries/salim.xml
+*.pyc
+*.sqlite3
+*.xlsx
+.env
+.idea/workspace.xml
+*.xml
+.idea/
+__pycache__/
+migrations/
+env/
+static/
