@@ -1,6 +1,4 @@
-bank_list.py
-script.py
-agency_banking/settings.py
+.vscode/
 .idea/dictionaries/salim.xml
 *.pyc
 *.sqlite3
@@ -9,7 +7,9 @@ agency_banking/settings.py
 .idea/workspace.xml
 *.xml
 .idea/
+__init__.py
 __pycache__/
 migrations/
 env/
 static/
+media/
