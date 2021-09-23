@@ -20,7 +20,7 @@ $(document).ready(function () {
 	// rebuildCarousel(productCarousel)
 
 	$.each(product.images, (index, value) => {
-		const item = `<div class="item"><img src="/media/${value}" alt="product"></div>`;
+		const item = `<div class="product-image "><img src="/media/${value}" alt="product"></div>`;
 		addAndRefreshCarousel(productCarousel, item);
 	});
 	console.log(product);
@@ -49,6 +49,10 @@ $(document).ready(function () {
 		e.preventDefault();
 
 		$('#accountDetails').modal('show');
+	});
+
+	productQty.change(function ({ target: { value } }) {
+		if (value < 1) productQty.val(1);
 	});
 
 	minusQty.on('click', function () {
