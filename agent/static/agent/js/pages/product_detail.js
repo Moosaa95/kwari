@@ -52,7 +52,7 @@ $(document).ready(function () {
 	});
 
 	productQty.change(function ({ target: { value } }) {
-		if (value < 1) productQty.val(1);
+		if (value < 1 || Number(value) !== 'NaN') productQty.val(1);
 	});
 
 	minusQty.on('click', function () {
