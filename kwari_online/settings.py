@@ -1,11 +1,18 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables
+path = os.path.join(BASE_DIR, "kwari_online/.env")
+load_dotenv(path)
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "n%vs&8*ywk8q1#0y1mhw4&%brdc&e#xhgls79j&yorx$p@1w9o"
+SECRET_KEY = os.getenv(
+    "SECRET_KEY"
+)  # "n%vs&8*ywk8q1#0y1mhw4&%brdc&e#xhgls79j&yorx$p@1w9o"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -61,11 +68,11 @@ WSGI_APPLICATION = "kwari_online.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "kwari_online"),
-        "USER": os.environ.get("PGUSER", "postgres"),
-        "PASSWORD": os.environ.get("PGPASSWORD", "postgres"),
-        "HOST": os.environ.get("PGHOST", "127.0.0.1"),
-        "PORT": os.environ.get("PGPORT", "5432"),
+        "NAME": os.getenv("DB_NAME", "kwari_online"),
+        "USER": os.getenv("PGUSER", "postgres"),
+        "PASSWORD": os.getenv("PGPASSWORD", "postgres"),
+        "HOST": os.getenv("PGHOST", "127.0.0.1"),
+        "PORT": os.getenv("PGPORT", "5432"),
     },
 }
 
@@ -111,13 +118,14 @@ MEDIA_URL = "/media/"
 
 # EMAIL
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = "mypayrep@gmail.com"
-EMAIL_HOST_PASSWORD = "reppay@1920"
-SENDER_EMAIL = "mypayrep@gmail.com"
-SENDER_ID = "PAYREP"
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+SENDER_ID = os.getenv("SENDER_ID")
+
 
 REG_MESSAGE = "kindly use the pin below to register your device." "Username:%s" "PIN:%s"
 
@@ -128,16 +136,16 @@ REG_MESSAGE = "kindly use the pin below to register your device." "Username:%s" 
 # SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
 # SESSION_EXPIRE_AFTER_LAST_ACTIVITY_GRACE_PERIOD = 600 # AFTER 1MINS
 
+APP_NAME = os.getenv("APP_NAME")
 
-APP_NAME = "MUDATEX"
+MERCHANT_ID = os.getenv("MERCHANT_ID")
 
-MERCHANT_ID = "mudatex"
+MERCHANT_INIT = os.getenv("MERCHANT_INIT")
 
-AGGREGATOR_URL = "http://127.0.0.1:8000/"
+AGGREGATOR_URL = os.getenv("AGGREGATOR_URL")
 
-AUTHORIZATION = (
-    "MYPAYREP-2ed6aeb45651b38c33526708dc21d985f60fc8ee4865298dc2cab5d1f2efdf2b"
-)
+AUTHORIZATION = os.getenv("AUTHORIZATION")
+
 
 USER_TYPES = (
     ("staff", "staff"),
