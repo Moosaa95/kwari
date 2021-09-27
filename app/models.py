@@ -261,13 +261,8 @@ class Agent(ModelMixin):
 class AccountLogin(models.Model):
     username = models.CharField(max_length=12, unique=True)
     password = models.CharField(max_length=255, null=True, blank=True)
-    device_id = models.CharField(max_length=255, null=True, blank=True)
-    transaction_pin = models.CharField(max_length=255, null=True, blank=True)
-    pin = models.CharField(max_length=255, null=True, blank=True)
-    device_reg_pin = models.CharField(max_length=255, null=True, blank=True)
     account = models.OneToOneField("Account", on_delete=models.CASCADE)
     status = models.BooleanField(default=True)
-    session_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = models.Manager()
 
@@ -423,10 +418,6 @@ class Account(ModelMixin):
     TYPE_CHOICES = (("primary", "primary"), ("secondary", "secondary"))
 
     account_number = models.CharField(max_length=12, unique=True)
-    bank_account_number = models.CharField(max_length=255, null=True, blank=True)
-    bank_name = models.CharField(max_length=255, null=True, blank=True)
-    bank_code = models.CharField(max_length=255, null=True, blank=True)
-    account_type = models.CharField(max_length=10, default="primary")
     balance = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     status = models.BooleanField(default=False)
 
@@ -1123,6 +1114,7 @@ class Product(ModelMixin):
     stock_date = models.DateTimeField(default=timezone.now)
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
+    service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     objects = models.Manager()
 
     class Meta:

@@ -139,3 +139,22 @@ class GetHomeProductsImages(APIView):
             filters={"product__tags__tag_id": tag}
         )
         return JsonResponse(data=products, safe=False)
+
+
+class InitiateTransaction(APIView):
+    def post(self, request):
+        quantity = int(request.data.get("quantity", 1))
+        amount = Decimal(request.data.get("amount", None))
+        account_number = request.data.get("account_number", None)
+        fi = request.data.get("fi", None)
+        transaction_type = request.data.get("transaction_type", None)
+        transaction_description = request.data.get("transaction_description", None)
+        product_id = request.data.get("product_id", None)
+        agent_id = request.session["agent_id"]
+
+        # get agent id
+        # get product id
+        # ref number
+        # transaction type debit
+        # transaction_description product purchase
+        # transaction_date date.now
