@@ -144,8 +144,9 @@ class Agent(ModelMixin):
         with transaction.atomic():
             try:
                 pin = kwargs.pop("pin")
-                agent = cls.objects.create(**kwargs)
                 account_number = kwargs["account_number"]
+                del kwargs["account_number"]
+                agent = cls.objects.create(**kwargs)
                 account = Account.create_account(
                     account_number=account_number, agent=agent, pin=pin
                 )
