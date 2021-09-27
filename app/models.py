@@ -312,7 +312,7 @@ class AccountLogin(models.Model):
             return False
 
     @classmethod
-    def login(cls, request, username=None, password=None, device_id=None):
+    def login(cls, request, username=None, password=None):
         try:
             credentials = cls.objects.get(username=username)
             request.session["account_id"] = credentials.account_id
@@ -320,20 +320,16 @@ class AccountLogin(models.Model):
             if credentials.pin:
                 if credentials.pin == cls.hash_password(password):
                     url = "/agent/change_password"
-                    return {"status": True, "url": url, "device_id": device_id}
+                    return {"status": True, "url": url}
                 else:
                     message = "Your OTP is wrong."
                     return {"status": False, "message": message}
             else:
-                if credentials.device_id and credentials.device_id == device_id:
-                    if credentials.password == cls.hash_password(password):
-                        url = "/agent/wallet"
-                        return {"status": True, "url": url}
-                    else:
-                        message = "Your password is incorrect"
-                        return {"status": False, "message": message}
+                if credentials.password == cls.hash_password(password):
+                    url = "/agent/wallet"
+                    return {"status": True, "url": url}
                 else:
-                    message = "Your device is not registered."
+                    message = "Your password is incorrect"
                     return {"status": False, "message": message}
         except cls.DoesNotExist:
             message = "Username is incorrect."
