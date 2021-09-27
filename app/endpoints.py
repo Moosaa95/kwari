@@ -147,10 +147,15 @@ class InitiateTransaction(APIView):
         amount = Decimal(request.data.get("amount", None))
         account_number = request.data.get("account_number", None)
         fi = request.data.get("fi", None)
-        transaction_type = request.data.get("transaction_type", None)
+        transaction_type = "debit"
         transaction_description = request.data.get("transaction_description", None)
         product_id = request.data.get("product_id", None)
-        agent_id = request.session["agent_id"]
+        account_id = request.session["account_id"]
+        service_charge = request.data.get("service_charge", 0)
+
+        payable_amount = (quantity * amount) + service_charge
+
+        account = Account.get_account(account_id=account_id)
 
         # get agent id
         # get product id

@@ -27,9 +27,8 @@
 }
 
 .quantity-container{
-    display: grid;
-    grid-template-columns: 7fr 1fr 1fr;
-    column-gap: 5px;
+    display: flex;
+    align-items: center;
 }
 
 #minus-quantity, #plus-quantity {
@@ -43,6 +42,19 @@
     outline: 0;
 }
 
+#minus-quantity{
+    margin-right: 5px;
+}
+
+#plus-quantity{
+    margin-left: 5px;
+}
+
 .quantity-btn-disabled {
     background: #43b5fc !important;
+}
+
+#product-quantity {
+    width: 90%;
+    text-align: center;
 }
