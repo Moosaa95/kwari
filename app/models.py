@@ -145,7 +145,7 @@ class Agent(ModelMixin):
             try:
                 pin = kwargs.pop("pin")
                 agent = cls.objects.create(**kwargs)
-                account_number = kwargs["mobile_number"]
+                account_number = kwargs["account_number"]
                 account = Account.create_account(
                     account_number=account_number, agent=agent, pin=pin
                 )

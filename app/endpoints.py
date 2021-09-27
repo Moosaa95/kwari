@@ -39,6 +39,7 @@ from .models import (
 # from .tasks import send_email, manual_funding
 # from .mixins import ActiveAgentRequiredMixin
 from .tasks import send_email
+from .functions import send_request
 
 
 class GetAgentsList(APIView):
@@ -51,24 +52,41 @@ class GetAgentsList(APIView):
 class CreateAgent(APIView):
     def post(self, request):
         data = dict(request.POST.dict())
-        if data["status"] == "on":
-            data["status"] = True
-        else:
-            data["status"] = False
+        url = settings.AGGREGATOR_URL + "api/vfd_create_wallet"
 
-        pin = get_random_string(length=6, allowed_chars="1234567890")
+        request_data = {"bvn": data["bvn"], "dob": data["dob"]}
+        response = send_request(url, request_data)
 
-        message = (
-            f"Welcome to {settings.APP_NAME}.\n kindly use the username and pin below to "
-            f"login and change your password.\n"
-            f"USERNAME:{data['mobile_number']}\nPIN:{pin}"
-        )
-        new_agent = Agent.create_agent(**data, pin=pin)
-        if new_agent and type(new_agent) is not dict:
-            send_email(data["email"], message)
-            return JsonResponse(data={"status": True})
+        if response["status"]:
+            data["account_number"] = response["account_number"]
+
+            if data["status"] == "on":
+                data["status"] = True
+            else:
+                data["status"] = False
+
+            pin = get_random_string(length=6, allowed_chars="1234567890")
+
+            message = (
+                f"Welcome to {settings.APP_NAME}.\n kindly use the username and pin below to "
+                f"login and change your password.\n"
+                f"USERNAME:{data['mobile_number']}\nPIN:{pin}"
+            )
+            new_agent = Agent.create_agent(**data, pin=pin)
+            if new_agent and type(new_agent) is not dict:
+                send_email(data["email"], message)
+                return JsonResponse(data={"status": True})
+            else:
+                return JsonResponse(
+                    data={"status": False, "message": new_agent["message"]}
+                )
         else:
-            return JsonResponse(data={"status": False, "message": new_agent["message"]})
+            return JsonResponse(
+                data={
+                    "status": False,
+                    "message": "An error occurred, please try again later",
+                }
+            )
 
 
 class GetProducts(APIView):
