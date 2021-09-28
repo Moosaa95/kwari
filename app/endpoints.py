@@ -152,14 +152,48 @@ class InitiateTransaction(APIView):
         product_id = request.data.get("product_id", None)
         account_id = request.session["account_id"]
         service_charge = request.data.get("service_charge", 0)
+        payment_type = request.data.get("payment_type", None)
+        transaction_date = datetime.date.today()
+
+        url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
 
         payable_amount = (quantity * amount) + service_charge
 
         account = Account.get_account(account_id=account_id)
 
-        # get agent id
-        # get product id
-        # ref number
-        # transaction type debit
-        # transaction_description product purchase
-        # transaction_date date.now
+        reference_number = ReferenceNumbers.create_reference_number()
+
+        details = {
+            "agent": account.agent,
+            "product_id": product_id,
+            "quantity": quantity,
+            "amount": amount,
+            "reference_number": reference_number,
+            "account_number": account_number,
+            "fi": "vfd",
+            "transaction_type": transaction_type,
+            "transaction_description": transaction_description,
+            "transaction_date": transaction_date,
+            "balance_before": account.balance,
+        }
+
+        new_transaction = Transaction.create_transaction(**details)
+
+        if new_transaction:
+            if payment_type == "wallet transfer":
+                request_data = {
+                    "account_number": account_number,
+                    "payable_amount": payable_amount,
+                }
+
+                # TODO: senf required fields and value to aggregator for forwarding
+
+            else:
+                return JsonResponse(data={"status": True})
+        else:
+            return JsonResponse(
+                data={
+                    "status": False,
+                    "message": "An error has occurred, please try again",
+                }
+            )
