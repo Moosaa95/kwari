@@ -69,7 +69,10 @@ $(document).ready(function () {
 			success: function (response, status, xhr, $form) {
 				if (response.status) {
 					$('#accountDetails').modal('show');
-					$('#payableAmount').html(product.agent_price);
+					$('#payableAmount').html(
+						paymentDetails.amount * paymentDetails.quantity +
+							paymentDetails.service_charge
+					);
 					$('#accountNumber').html(localStorage.getItem('kwari_username'));
 					alert('transaction intiated, make payment within 30 minutes');
 				} else {
