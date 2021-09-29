@@ -56,12 +56,12 @@ class CreateAgent(APIView):
 
         if "bvn" in data and "date_of_birth" in data:
             data["date_of_birth"] = datetime.datetime.strptime(
-                data["date_of_birth"], "%m/%d/%y"
+                data["date_of_birth"], "%m/%d/%Y"
             )
             print(data)
             request_data = {"bvn": data["bvn"], "dob": data["date_of_birth"]}
             # response = send_request(url, request_data) TODO: UNCOMMENT THIS LATER!
-            response = dict(status=True, account_number="9077179993")
+            response = dict(status=True, account_number="9077179994")
 
             if response["status"]:
                 data["account_number"] = response["account_number"]

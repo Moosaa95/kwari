@@ -127,7 +127,7 @@ class Agent(ModelMixin):
         max_length=50, choices=GENDER_CHOICES, blank=True, null=True
     )
     mobile_number = models.CharField(max_length=12, unique=True)
-    bvn = models.IntegerField(unique=True, validators=[validate_length], null=True)
+    bvn = models.BigIntegerField(unique=True, validators=[validate_length], null=True)
     date_of_birth = models.DateField(default=timezone.now)
     email = models.EmailField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255)
@@ -446,6 +446,8 @@ class Account(ModelMixin):
                 account = cls.objects.create(
                     account_number=kwargs["account_number"], agent=kwargs["agent"]
                 )
+                print("here is your pin #######")
+                print(kwargs["pin"])
                 AccountLogin.create_login(
                     username=kwargs["account_number"],
                     pin=kwargs["pin"],

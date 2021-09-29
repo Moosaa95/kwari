@@ -121,11 +121,11 @@
     margin-bottom: 10px;
 }
 
-#loginBtn, #loginBtn:active {
+#loginBtn, #loginBtn:active, #changePasswordBtn, #changePasswordBtn:active {
     color: #fff;
 }
 
-#loginBtn, #loginBtn:active {
+#loginBtn, #changePasswordBtn {
     padding: 10px;
     display: inline-block;
     width: 100%;
