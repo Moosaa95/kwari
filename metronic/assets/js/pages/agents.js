@@ -21,7 +21,7 @@ const AgentsTable = (function () {
 						obj.status = obj.status ? 1 : 2;
 						return obj;
 					});
-				}
+				},
 			},
 
 			columns: [
@@ -30,7 +30,7 @@ const AgentsTable = (function () {
 				{ data: 'purchases' },
 				{ data: 'packaged' },
 				{ data: 'status' },
-				{ data: 'Actions', responsivePriority: -1 }
+				{ data: 'Actions', responsivePriority: -1 },
 			],
 			columnDefs: [
 				{
@@ -42,14 +42,14 @@ const AgentsTable = (function () {
                         <a href="account_detail?account_id=${full.id}" class="btn btn-sm btn-clean btn-icon btn-icon-md" title="View">
                           <i class="la la-eye"></i>
                         </a>`;
-					}
+					},
 				},
 				{
 					targets: -2,
 					render: function (data, type, full, meta) {
 						const status = {
 							1: { title: 'Active', class: ' kt-badge--success' },
-							2: { title: 'Inactive', class: ' kt-badge--warning' }
+							2: { title: 'Inactive', class: ' kt-badge--warning' },
 						};
 						if (typeof status[data] === 'undefined') {
 							return data;
@@ -61,9 +61,9 @@ const AgentsTable = (function () {
 							status[data].title +
 							'</span>'
 						);
-					}
-				}
-			]
+					},
+				},
+			],
 		});
 	};
 
@@ -72,9 +72,9 @@ const AgentsTable = (function () {
 		init: function () {
 			initTable1();
 		},
-		refresh: function(){
+		refresh: function () {
 			table.DataTable().ajax.reload();
-		}
+		},
 	};
 })();
 
@@ -92,6 +92,7 @@ $(document).ready(function () {
 	});
 
 	createAgent.on('click', function (e) {
+		console.log(serializeForm('#addAgentForm'));
 		$('#addAgentForm').ajaxSubmit({
 			url: '/app/create_agent',
 			beforeSend: function () {
@@ -107,8 +108,11 @@ $(document).ready(function () {
 						// options
 						icon: 'glyphicon glyphicon-warning-sign',
 						title: '',
-						message: 'Agent has been created successfully'
+						message: 'Agent has been created successfully',
 					});
+					alert(
+						`Copy credentials and send to agent \n Username: ${response.username} \n Pin: ${response.pin}`
+					);
 				} else {
 					addAgentModal.modal('hide');
 					$.notify(
@@ -116,10 +120,10 @@ $(document).ready(function () {
 							// options
 							icon: 'glyphicon glyphicon-warning-sign',
 							title: '',
-							message: 'Agent creation failed'
+							message: 'Agent creation failed',
 						},
 						{
-							type: 'danger'
+							type: 'danger',
 						}
 					);
 					console.log('please try again');
@@ -127,7 +131,24 @@ $(document).ready(function () {
 				createAgent.removeClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
-			}
+			},
+			error: function () {
+				$.notify(
+					{
+						// options
+						icon: 'glyphicon glyphicon-warning-sign',
+						title: '',
+						message: 'Agent creation failed',
+					},
+					{
+						type: 'danger',
+					}
+				);
+				console.log('please try again');
+				createAgent.removeClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+			},
 		});
 	});
 });

@@ -60,8 +60,11 @@ class CreateAgent(APIView):
             )
             print(data)
             request_data = {"bvn": data["bvn"], "dob": data["date_of_birth"]}
+            account_number = get_random_string(
+                length=11, allowed_chars="1234567890"
+            )  # remove later!
             # response = send_request(url, request_data) TODO: UNCOMMENT THIS LATER!
-            response = dict(status=True, account_number="9077179994")
+            response = dict(status=True, account_number=account_number)
 
             if response["status"]:
                 data["account_number"] = response["account_number"]
@@ -70,6 +73,12 @@ class CreateAgent(APIView):
                     data["status"] = True
                 else:
                     data["status"] = False
+
+                if "can_request_loan" in data:
+                    data["can_request_loan"] = True
+
+                if "can_request_discount" in data:
+                    data["can_request_discount"] = True
 
                 pin = get_random_string(length=6, allowed_chars="1234567890")
 
@@ -81,7 +90,13 @@ class CreateAgent(APIView):
                 new_agent = Agent.create_agent(**data, pin=pin)
                 if new_agent and type(new_agent) is not dict:
                     send_email(data["email"], message)
-                    return JsonResponse(data={"status": True})
+                    return JsonResponse(
+                        data={
+                            "status": True,
+                            "username": data["mobile_number"],
+                            "pin": pin,
+                        }
+                    )
                 else:
                     return JsonResponse(
                         data={"status": False, "message": new_agent["message"]}
