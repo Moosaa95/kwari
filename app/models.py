@@ -108,6 +108,11 @@ class ActivityLogs(models.Model):
         return data
 
 
+def validate_length(value):
+    if len(str(value)) != 11:
+        raise ValidationError(_("bvn must be 11 digits"))
+
+
 class Agent(ModelMixin):
     """
     Model to store agents bio data that use xchangebox payrep platform.
@@ -121,8 +126,9 @@ class Agent(ModelMixin):
     gender = models.CharField(
         max_length=50, choices=GENDER_CHOICES, blank=True, null=True
     )
-    business_name = models.CharField(max_length=255, blank=True, null=True)
     mobile_number = models.CharField(max_length=12, unique=True)
+    bvn = models.IntegerField(unique=True, validators=[validate_length], null=True)
+    date_of_birth = models.DateField(default=timezone.now)
     email = models.EmailField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255)
     state = models.CharField(max_length=10, null=True, blank=True)
@@ -261,6 +267,7 @@ class Agent(ModelMixin):
 class AccountLogin(models.Model):
     username = models.CharField(max_length=12, unique=True)
     password = models.CharField(max_length=255, null=True, blank=True)
+    pin = models.CharField(max_length=255, null=True, blank=True)
     account = models.OneToOneField("Account", on_delete=models.CASCADE)
     status = models.BooleanField(default=True)
 
@@ -326,7 +333,7 @@ class AccountLogin(models.Model):
                     return {"status": False, "message": message}
             else:
                 if credentials.password == cls.hash_password(password):
-                    url = "/agent/wallet"
+                    url = "/agent/home"
                     return {"status": True, "url": url}
                 else:
                     message = "Your password is incorrect"
@@ -380,19 +387,14 @@ class AccountLogin(models.Model):
         #     return None
 
     @classmethod
-    def change_password(
-        cls, username=None, password=None, device_id=None, transaction_pin=None
-    ):
+    def change_password(cls, username=None, password=None):
         try:
             credentials = cls.objects.get(username=username)
             if credentials.pin:
                 password = cls.hash_password(password)
-                transaction_pin = cls.hash_password(transaction_pin)
                 update = cls.update_credentials(
                     username=username,
                     password=password,
-                    transaction_pin=transaction_pin,
-                    device_id=device_id,
                     pin=None,
                 )
                 if update:
@@ -1111,6 +1113,8 @@ class Product(ModelMixin):
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
     service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    can_request_loan = models.BooleanField(default=False)
+    can_request_discount = models.BooleanField(default=False)
     objects = models.Manager()
 
     class Meta:

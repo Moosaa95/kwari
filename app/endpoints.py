@@ -54,37 +54,50 @@ class CreateAgent(APIView):
         data = dict(request.POST.dict())
         url = settings.AGGREGATOR_URL + "api/vfd_create_wallet"
 
-        request_data = {"bvn": data["bvn"], "dob": data["dob"]}
-        response = send_request(url, request_data)
-
-        if response["status"]:
-            data["account_number"] = response["account_number"]
-
-            if data["status"] == "on":
-                data["status"] = True
-            else:
-                data["status"] = False
-
-            pin = get_random_string(length=6, allowed_chars="1234567890")
-
-            message = (
-                f"Welcome to {settings.APP_NAME}.\n kindly use the username and pin below to "
-                f"login and change your password.\n"
-                f"USERNAME:{data['mobile_number']}\nPIN:{pin}"
+        if "bvn" in data and "date_of_birth" in data:
+            data["date_of_birth"] = datetime.datetime.strptime(
+                data["date_of_birth"], "%m/%d/%y"
             )
-            new_agent = Agent.create_agent(**data, pin=pin)
-            if new_agent and type(new_agent) is not dict:
-                send_email(data["email"], message)
-                return JsonResponse(data={"status": True})
+            print(data)
+            request_data = {"bvn": data["bvn"], "dob": data["date_of_birth"]}
+            # response = send_request(url, request_data) TODO: UNCOMMENT THIS LATER!
+            response = dict(status=True, account_number="9077179993")
+
+            if response["status"]:
+                data["account_number"] = response["account_number"]
+
+                if data["status"] == "on":
+                    data["status"] = True
+                else:
+                    data["status"] = False
+
+                pin = get_random_string(length=6, allowed_chars="1234567890")
+
+                message = (
+                    f"Welcome to {settings.APP_NAME}.\n kindly use the username and pin below to "
+                    f"login and change your password.\n"
+                    f"USERNAME:{data['mobile_number']}\nPIN:{pin}"
+                )
+                new_agent = Agent.create_agent(**data, pin=pin)
+                if new_agent and type(new_agent) is not dict:
+                    send_email(data["email"], message)
+                    return JsonResponse(data={"status": True})
+                else:
+                    return JsonResponse(
+                        data={"status": False, "message": new_agent["message"]}
+                    )
             else:
                 return JsonResponse(
-                    data={"status": False, "message": new_agent["message"]}
+                    data={
+                        "status": False,
+                        "message": "An error occurred, please try again later",
+                    }
                 )
         else:
             return JsonResponse(
                 data={
                     "status": False,
-                    "message": "An error occurred, please try again later",
+                    "message": "no bvn or date of birth supplied",
                 }
             )
 
