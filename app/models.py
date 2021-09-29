@@ -136,6 +136,8 @@ class Agent(ModelMixin):
     email = models.EmailField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255)
     state = models.CharField(max_length=10, null=True, blank=True)
+    can_request_loan = models.BooleanField(default=False)
+    can_request_discount = models.BooleanField(default=False)
     status = models.BooleanField(default=True)
 
     objects = models.Manager()
@@ -460,7 +462,7 @@ class Account(ModelMixin):
                 print("here is your pin #######")
                 print(kwargs["pin"])
                 AccountLogin.create_login(
-                    username=kwargs["account_number"],
+                    username=kwargs["agent"].mobile_number,
                     pin=kwargs["pin"],
                     account=account,
                 )
@@ -1126,8 +1128,6 @@ class Product(ModelMixin):
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
     service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    can_request_loan = models.BooleanField(default=False)
-    can_request_discount = models.BooleanField(default=False)
     objects = models.Manager()
 
     class Meta:
