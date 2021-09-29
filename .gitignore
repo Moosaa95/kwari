@@ -11,5 +11,5 @@ __init__.py
 __pycache__/
 migrations/
 env/
-/static/
+static/
 media/
