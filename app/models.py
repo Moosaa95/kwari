@@ -4,6 +4,8 @@ import datetime
 import hashlib
 from decimal import Decimal
 from io import BytesIO
+
+from django.core.exceptions import ValidationError
 from django.core.files import File
 
 # third-party
@@ -27,6 +29,8 @@ from django.core.serializers import serialize
 from django.utils.crypto import get_random_string
 
 # local Django
+from pylint.checkers.typecheck import _
+
 from login.models import User
 from .functions import money_format, seconds_to_days, last_usage
 from .model_mixin import ModelMixin, AbstractImage
@@ -188,7 +192,6 @@ class Agent(ModelMixin):
 
     @classmethod
     def fetch_agents(cls):
-        print("###########")
         agents_list = list()
 
         agents = cls.objects.all().prefetch_related(
@@ -277,7 +280,11 @@ class AccountLogin(models.Model):
         pass
 
     def __str__(self):
-        return self.account.account_name
+        return "%s %s %s" % (
+            self.account.agent.first_name,
+            self.account.agent.surname,
+            self.account.agent.other_name,
+        )
 
     @classmethod
     def hash_password(cls, ppt):
@@ -437,7 +444,11 @@ class Account(ModelMixin):
         pass
 
     def __str__(self):
-        return "%s_%s" % (self.name, self.account_name)
+        return "%s %s %s" % (
+            self.agent.first_name,
+            self.agent.surname,
+            self.agent.other_name,
+        )
 
     @classmethod
     def create_account(cls, **kwargs):

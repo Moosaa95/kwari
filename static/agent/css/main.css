@@ -11298,7 +11298,7 @@ a:hover, a:focus {
   visibility: hidden;
   padding: 15px !important;
   overflow: hidden;
-  height: 0;
+  /* height: 0; */
 }
 
 .app-body {
@@ -11316,7 +11316,7 @@ a:hover, a:focus {
 .loader.loaded .app-body {
   visibility: visible;
   overflow: visible;
-  height: 100%;
+  /* height: 50%; */
 }
 
 .preloader-div {

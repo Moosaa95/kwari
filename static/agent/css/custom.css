@@ -1,3 +1,134 @@
 .home-image{
     height: 400px;
 }
+
+.product-image {
+    height: 400px;
+}
+
+.product-image img {
+    height: 100%;
+}
+
+.product-info-wrapper {
+     background: #fadedf;
+     padding: 10px 20px;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     text-decoration: none;
+     color: #000;
+     font-size: 16px;
+}
+
+.product-info-wrapper:active{
+    color: #000;
+}
+
+.quantity-container{
+    display: flex;
+    align-items: center;
+}
+
+#minus-quantity, #plus-quantity {
+    border: 0;
+    padding: 5px;
+    background:#2b80fb;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 5px;
+    width: 40px;
+    outline: 0;
+}
+
+#minus-quantity{
+    margin-right: 5px;
+}
+
+#plus-quantity{
+    margin-left: 5px;
+}
+
+.quantity-btn-disabled {
+    background: #43b5fc !important;
+}
+
+#product-quantity {
+    width: 90%;
+    text-align: center;
+}
+
+.login-container {
+    /* position: relative; */
+    height: 100vh;
+    background: url('../images/shop-home.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-family: Montserrat, sans-serif;
+}
+
+.login-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000;
+    background: #FFF;
+    box-shadow: 2px 3px 5px rgba(0, 0, 0, .4);
+    padding: 25px;
+    border-radius: 5px;
+}
+
+.kwari-form-control {
+    margin-bottom: 15px;
+}
+
+.kwari-form-control span {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.kwari-form-control input[type="text"], .kwari-form-control input[type="password"]{
+    padding: 10px;
+    border-radius: 5px;
+    outline: 0;
+    border: 1px solid #333;
+    margin-top: 15px;
+}
+
+.kwari-form-control input[type="text"]:focus, .kwari-form-control input[type="password"]:focus {
+    border: 2px solid #000;
+}
+
+.form-action-wrapper {
+    margin-top: 20px;
+}
+
+#forgotPasswordBtn, #loginBtn {
+    cursor: pointer;
+}
+
+
+#forgotPasswordBtn, #forgotPasswordBtn:active {
+    color: #239198;
+}
+
+#forgotPasswordBtn {
+    display: block;
+    font-size: 14px;
+    text-align: end;
+    margin-bottom: 10px;
+}
+
+#loginBtn, #loginBtn:active, #changePasswordBtn, #changePasswordBtn:active {
+    color: #fff;
+}
+
+#loginBtn, #changePasswordBtn {
+    padding: 10px;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    background: #000;
+}
