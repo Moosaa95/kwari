@@ -48,7 +48,36 @@ $(document).ready(function () {
 		console.log('################');
 		e.preventDefault();
 
-		$('#accountDetails').modal('show');
+		const paymentDetails = {
+			quantity: $('#product-quantity').val(),
+			amount: product.agent_price,
+			transaction_description: 'bank transfer payment',
+			product_id: product.id,
+			service_charge: product.service_charge,
+			payment_type: 'bank transfer',
+		};
+
+		console.log(paymentDetails);
+
+		$.ajax({
+			url: '/agent/create_transaction',
+			method: 'post',
+			data: paymentDetails,
+			beforeSend: function () {
+				$('#preloader').show();
+			},
+			success: function (response, status, xhr, $form) {
+				if (response.status) {
+					$('#accountDetails').modal('show');
+					$('#payableAmount').html(product.agent_price);
+					$('#accountNumber').html(localStorage.getItem('kwari_username'));
+					alert('transaction intiated, make payment within 30 minutes');
+				} else {
+					$('#preloader').hide();
+					showErrorMsg(response['message']);
+				}
+			},
+		});
 	});
 
 	productQty.change(function ({ target: { value } }) {

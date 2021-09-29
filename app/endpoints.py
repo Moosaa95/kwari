@@ -158,16 +158,17 @@ class InitiateTransaction(APIView):
     def post(self, request):
         quantity = int(request.data.get("quantity", 1))
         amount = Decimal(request.data.get("amount", None))
-        account_number = request.data.get("account_number", None)
-        fi = request.data.get("fi", None)
+        fi = "vfd"
         transaction_type = "debit"
         transaction_description = request.data.get("transaction_description", None)
         product_id = request.data.get("product_id", None)
         account_id = request.session["account_id"]
-        service_charge = request.data.get("service_charge", 0)
+        service_charge = Decimal(request.data.get("service_charge", 0))
         payment_type = request.data.get("payment_type", None)
-        transaction_date = datetime.date.today()
+        transaction_date = timezone.now()
 
+        print("#####3")
+        print(account_id)
         url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
 
         payable_amount = (quantity * amount) + service_charge
@@ -180,9 +181,9 @@ class InitiateTransaction(APIView):
             "agent": account.agent,
             "product_id": product_id,
             "quantity": quantity,
-            "amount": amount,
+            "amount": payable_amount,
             "reference_number": reference_number,
-            "account_number": account_number,
+            "account_number": request.session["username"],
             "fi": "vfd",
             "transaction_type": transaction_type,
             "transaction_description": transaction_description,
@@ -199,7 +200,7 @@ class InitiateTransaction(APIView):
                     "payable_amount": payable_amount,
                 }
 
-                # TODO: senf required fields and value to aggregator for forwarding
+                # TODO: send required fields and value to aggregator for forwarding
 
             else:
                 return JsonResponse(data={"status": True})
