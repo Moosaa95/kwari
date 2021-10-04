@@ -27,11 +27,13 @@ class ChangePasswordForm(forms.Form):
     password.widget.attrs.update(
         {
             "placeholder": "Password",
+            "class": "form-control form-control-lg",
         }
     )
 
     confirm_password.widget.attrs.update(
         {
             "placeholder": "Confirm Password",
+            "class": "form-control form-control-lg",
         }
     )
