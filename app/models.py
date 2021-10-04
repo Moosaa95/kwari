@@ -448,8 +448,6 @@ class Account(ModelMixin):
                 account = cls.objects.create(
                     account_number=kwargs["account_number"], agent=kwargs["agent"]
                 )
-                print("here is your pin #######")
-                print(kwargs["pin"])
                 AccountLogin.create_login(
                     username=kwargs["agent"].mobile_number,
                     pin=kwargs["pin"],

@@ -1,59 +1,72 @@
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Kwari Online</title>
-    <meta name="description" content="Kwari online agent platform">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link rel="icon" type="image/png" href="/static/agent/images/favicon.png" sizes="32x32">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Kwari Online</title>
+	<meta name="description" content="Cabe - Responsive Multi-purpose HTML5 Template">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-    <!-- STYLESHEETS -->
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700" rel="stylesheet">
-    <link rel="stylesheet" href="/static/agent/css/owl.carousel.min.css" type="text/css" media="all">
-    <link rel="stylesheet" href="/static/agent/css/owl.theme.default.min.css" type="text/css" media="all">
+	<!-- STYLESHEETS -->
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700" rel="stylesheet">
+	<link rel="stylesheet" href="/static/agent/css/owl.carousel.min.css" type="text/css" media="all">
+	<link rel="stylesheet" href="/static/agent/css/owl.theme.default.min.css" type="text/css" media="all">
 
-    <link rel="stylesheet" href="/static/agent/css/themify-icons.css">
+	<link rel="stylesheet" href="/static/agent/css/themify-icons.css">
 
-    <link rel="stylesheet" href="/static/agent/css/main.css" type="text/css" media="all">
-    <link rel="stylesheet" href="/static/agent/css/custom.css" type="text/css" media="all">
+	<link rel="stylesheet" href="/static/agent/css/main.css" type="text/css" media="all">
+	
 
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+
+	<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
 </head>
 
-<body class="loader">
-<!-- main wrapper -->
-<div class="login-container">
-    <div class="login-wrapper">
+<body>
+	
+	
 
-        <h1 class="">LOGIN</h1>
-        <p class="">
-            Let's get you logged in
-        </p>
-        <form id="loginForm">
-            {% csrf_token %}
-            <div class="kwari-form-control">
-                <span>Username</span>
-                {{form.username}}
-            </div>
-            <div class="kwari-form-control">
-                <span>Password</span>
-                {{form.password}}
-            </div>
-        </form>
-        <div class="form-action-wrapper">
-            <a href="#" data-toggle="modal" id="forgotPasswordBtn">Forgot password</a>
-            <a href="#" id="loginBtn" class="button button-full button-m shadow-large button-round-small bg-green1-dark top-30 bottom-0">LOGIN</a>
-        </div>
-    </div>
-</div>
-<!-- SCRIPTS -->
-<script src="/static/agent/js/plugin.js"></script>
-<script src="/static/agent/js/main.js"></script>
-<script src="/static/agent/js/utilities.js"></script>
-<script type="text/javascript" src="/static/agent/js/pages/agent_login.js" async></script>
+	<main class="bg-white bg-cover" style="background-image: url('/static/agent/images/landing-bg.jpg');">
+		<div class="d-flex align-items-center mx-auto vertical-form">
+			<div class="container">
+				<div class="card bg-tranparent">
+					<div class="card-body p-2 ">
+						<form id="loginForm">
+							<h1 class="text-white">Get <br> Started!</h1>
+							{% csrf_token %}
+							<div class="input-group mb-3 mt-3 bg-white">
+								<i class="ti-user"></i>
+			                	{{form.username}}
+			              	</div>
+			              	<div class="input-group mb-3 bg-white">
+			              		<i class="ti-lock"></i>
+								  {{form.password}}
+			              	</div>
+			              	<a class="link-primary text-white" href="forgot-password.html">Forgot password?</a>
+			              	<a href="#" id="loginBtn" class="btn btn-block btn-lg btn-primary mt-2">Sign In</a>
+			            </form>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</main>
+
+	
+
+
+	
+	<!-- SCRIPTS -->
+	<!-- <script src="js/plugin.js"></script>
+	<script src="js/main.js"></script> -->
+	<script src="/static/agent/js/plugin.js"></script>
+	<script src="/static/agent/js/main.js"></script>
+	<script src="/static/agent/js/utilities.js"></script>
+	<script type="text/javascript" src="/static/agent/js/pages/agent_login.js" async></script>
+	
+	
+
 </body>
+
 </html>

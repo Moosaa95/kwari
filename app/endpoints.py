@@ -58,7 +58,6 @@ class CreateAgent(APIView):
             data["date_of_birth"] = datetime.datetime.strptime(
                 data["date_of_birth"], "%m/%d/%Y"
             )
-            print(data)
             request_data = {"bvn": data["bvn"], "dob": data["date_of_birth"]}
             account_number = get_random_string(
                 length=11, allowed_chars="1234567890"
