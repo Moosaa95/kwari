@@ -179,6 +179,8 @@ class InitiateTransaction(APIView):
         account_id = request.session["account_id"]
         service_charge = Decimal(request.data.get("service_charge", 0))
         payment_type = request.data.get("payment_type", None)
+        shipping_address = request.data.get("shipping_address", None)
+        mobile_number = request.data.get("mobile_number", None)
         transaction_date = timezone.now()
 
         print("#####3")

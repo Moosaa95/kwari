@@ -15,6 +15,7 @@
 </header>
 {%endblock%}
 {%block modal%}
+<!-- account details -->
 <div class="modal fade" id="accountDetails" tabindex="-1" role="dialog" aria-labelledby="tsqModal" aria-hidden="true">
 	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
@@ -35,6 +36,32 @@
 				</div>
 			</div>
 			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- purchase information -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" role="dialog" aria-labelledby="tsqModal" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content" style="max-width: 350px;">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addTerminalLabel">Purchase Information</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+			</div>
+			<div class="modal-body">
+				<p>
+					Kindly fill in the details below
+				</p>
+				<div style="width: 100%">
+					<textarea class="form-control" style="width:100%" name="" id="shipping_address" cols="50" rows="10" placeholder="Enter shipping address"></textarea>
+					<br>
+					<input class="form-control" style="width:100%" type="text" name="" id="mobile_number" placeholder="Enter mobile number">
+				</div>
+			</div>
+			<div class="modal-footer" style="display: flex; justify-content: space-between;">
+				<button type="button" id="purchase" class="btn btn-primary">Proceed to Payment</button>
 				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 			</div>
 		</div>
@@ -80,10 +107,10 @@
 			<input type="text" id="product-quantity" name="quantity" value="1" title="Qty" class="form-control" />
 			<button id="plus-quantity">+</button>
 	</div>
+	<br>
 	<div class="row">
 		<div class="col-sm-12 mt-4 content-div text-left">
-			<a href="#" class="bg-red-gradiant fw-600 mt-2 next-tour btn btn-lg text-center w-100 text-white" id="purchase"><i class="ti-shopping-cart mr-2"></i>Bank Transfer Payment</a>
-			<a href="#" class="bg-red-gradiant fw-600 mt-2 next-tour btn btn-lg text-center w-100 text-white"><i class="ti-shopping-cart mr-2"></i>Wallet Payment</a>
+			<a href="#" class="bg-red-gradiant fw-600 mt-2 next-tour btn btn-lg text-center w-100 text-white" id="proceedPayment"><i class="ti-shopping-cart mr-2"></i>Bank Transfer Payment</a>
 			<a href="#" class="bg-blue fw-600 mt-2 next-tour btn btn-lg text-center w-100 text-white" id="share"><i class="ti-share mr-2"></i>share</a>
 			<hr>
 			<span class="item-subtitle mb-2 mt-2 fw-600">Description</span>
@@ -94,5 +121,6 @@
 </div>
 {%endblock%}
 {%block script%}
+<script src="/static/agent/js/utilities.js" type="text/javascript"></script>
 <script src="/static/agent/js/pages/product_detail.js" type="text/javascript"></script>
 {%endblock%}
