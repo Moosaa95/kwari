@@ -40,18 +40,15 @@ $(document).ready(function () {
 	});
 
 	$('#purchase').on('click', function (e) {
-		console.log('################');
 		e.preventDefault();
-		console.log('$$$$$$$$');
-		console.log($('#mobile_number').val());
-
-		if ($('#mobile_number').val().trim() == '') {
-			showNotify('mobile number is required', 'danger');
-			return;
-		}
 
 		if ($('#shipping_address').val().trim() == '') {
 			showNotify('shipping address is required', 'danger');
+			return;
+		}
+
+		if ($('#mobile_number').val().trim() == '') {
+			showNotify('mobile number is required', 'danger');
 			return;
 		}
 
@@ -63,8 +60,6 @@ $(document).ready(function () {
 			service_charge: product.service_charge,
 			payment_type: 'bank transfer',
 		};
-
-		console.log(paymentDetails);
 
 		$.ajax({
 			url: '/agent/create_transaction',
