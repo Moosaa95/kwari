@@ -106,7 +106,8 @@ $(document).ready(function () {
 	const createProductImage = $('#createProductImage');
 	let formData = {};
 
-	const defaultStructure = { start: 0, end: 0, charges: 0 };
+	const defaultStructure = { 'start-0': 0, 'end-0': 0, 'charges-0': 0 };
+	const structureKeys = ['start', 'end', 'charges'];
 	let chargesStructure = [defaultStructure];
 	const chargesTemplate = (index) => `
 		<div class="form-group row">
@@ -115,7 +116,7 @@ $(document).ready(function () {
 				<input type="text" name="start-${
 					index - 1
 				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1]?.start
+		chargesStructure[index - 1][`start-${index - 1}`]
 	}>
 			</div>
 			<div class="col-3">
@@ -123,7 +124,7 @@ $(document).ready(function () {
 				<input type="text" name="end-${
 					index - 1
 				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1]?.end
+		chargesStructure[index - 1][`end-${index - 1}`]
 	}>
 			</div>
 			<div class="col-3">
@@ -131,7 +132,7 @@ $(document).ready(function () {
 				<input type="text" name="charges-${
 					index - 1
 				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1]?.charges
+		chargesStructure[index - 1][[`charges-${index - 1}`]]
 	}>
 			</div>
 			<div class="d-flex flex-grow-1 align-items-center justify-content-start">
@@ -171,6 +172,15 @@ $(document).ready(function () {
 		formData['quantity_left'] = removeCommas(formData['quantity_left']);
 		formData['unit_price'] = removeCommas(formData['unit_price']);
 		formData['in_stock'] = formData.in_stock ? formData.in_stock : 'on';
+		const chargesStructure = [];
+		$.each(formData.charges_structure, (index, value) => {
+			chargesStructure[index] = {
+				start: value[`start-${index}`],
+				end: value[`end-${index}`],
+				charges: value[`charges-${index}`],
+			};
+		});
+		formData['charges_structure'] = chargesStructure;
 
 		console.log(formData);
 		$.ajax({
@@ -216,11 +226,9 @@ $(document).ready(function () {
 
 	const handleInput = ({ target: { name, value } }) => {
 		const block = name.split('-')[0];
-		if (Object.keys(defaultStructure).includes(block)) {
-			const modifier = Number(name.split('-')[1]);
-			chargesStructure[modifier][block] = value;
-			console.log('-----charge structure----');
-			console.log(chargesStructure);
+		if (structureKeys.includes(block)) {
+			const modifier = name.split('-')[1];
+			chargesStructure[modifier][name] = value;
 			formData['charges_structure'] = chargesStructure;
 		} else {
 			formData[name] = value;
@@ -272,7 +280,14 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '.addChargesInput', () => {
-		chargesStructure = [...chargesStructure, defaultStructure];
+		const length = chargesStructure.length;
+		const start = `start-${length}`;
+		const end = `end-${length}`;
+		const charges = `charges-${length}`;
+		chargesStructure = [
+			...chargesStructure,
+			{ [start]: 0, [end]: 0, [charges]: 0 },
+		];
 		console.log(chargesStructure);
 		computeChargesInputList();
 	});
@@ -283,6 +298,5 @@ $(document).ready(function () {
 			chargesStructure.splice(id, 1);
 			computeChargesInputList();
 		}
-		console.log(chargesStructure);
 	});
 });
