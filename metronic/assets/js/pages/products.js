@@ -11,14 +11,13 @@ const ProductTable = (function () {
 				data: query_params,
 				dataSrc: function (data) {
 					let count = 0;
-					return  $.map(data, function (obj) {
+					return $.map(data, function (obj) {
 						count = count + 1;
 						obj.sn = count;
 						obj.in_stock = obj.in_stock ? 'Yes' : 'No';
 						return obj;
 					});
-
-				}
+				},
 			},
 
 			columns: [
@@ -26,13 +25,13 @@ const ProductTable = (function () {
 				{ data: 'name' },
 				{ data: 'quantity' },
 				{ data: 'unit_price' },
-				{ data: 'agent_price' },
+				// { data: 'agent_price' },
 				{ data: 'category__name' },
 				{ data: 'quantity_left' },
 				{ data: 'in_stock' },
 				{ data: 'stock_date' },
 				{ data: 'sold_date' },
-				{ data: 'Actions', responsivePriority: -1 }
+				{ data: 'Actions', responsivePriority: -1 },
 			],
 			columnDefs: [
 				{
@@ -51,11 +50,11 @@ const ProductTable = (function () {
 										
 									</div>
 								</span>`;
-					}
+					},
 				},
 				{
-					targets: [-5,-7,-8, -9],
-					render: function(data, type, full, meta) {
+					targets: [-5, -7, -8, -9],
+					render: function (data, type, full, meta) {
 						if (typeof data === 'undefined') {
 							return data;
 						}
@@ -63,15 +62,15 @@ const ProductTable = (function () {
 					},
 				},
 				{
-					targets: [-2,-3],
-					render: function(data, type, full, meta) {
-						if (typeof data === 'undefined' || data === null  ) {
+					targets: [-2, -3],
+					render: function (data, type, full, meta) {
+						if (typeof data === 'undefined' || data === null) {
 							return data;
 						}
-						return moment(data).format("dddd, MMMM Do YYYY, h:mm:ss a");
+						return moment(data).format('dddd, MMMM Do YYYY, h:mm a');
 					},
 				},
-			]
+			],
 		});
 	};
 
@@ -92,22 +91,67 @@ const ProductTable = (function () {
 
 		reInitialize: function (query_params) {
 			destroyTable();
-			initTable(query_params)
+			initTable(query_params);
 		},
 
 		refresh: function () {
 			refreshTable();
-		}
+		},
 	};
 })();
 
-
 $(document).ready(function () {
-
 	ProductTable.init({ in_stock: true });
-	const addProductImageModal = $('#addProductImageModal')
-	const createProductImage = $('#createProductImage')
-	$('#category').select2()
+	const addProductImageModal = $('#addProductImageModal');
+	const createProductImage = $('#createProductImage');
+	let formData = {};
+
+	const defaultStructure = { start: 0, end: 0, charges: 0 };
+	let chargesStructure = [defaultStructure];
+	const chargesTemplate = (index) => `
+		<div class="form-group row">
+			<div class="col-3">
+				<label class="form-control-label">Quantity Start</label>
+				<input type="text" name="start-${
+					index - 1
+				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
+		chargesStructure[index - 1]?.start
+	}>
+			</div>
+			<div class="col-3">
+				<label class="form-control-label">Quantity End</label>
+				<input type="text" name="end-${
+					index - 1
+				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
+		chargesStructure[index - 1]?.end
+	}>
+			</div>
+			<div class="col-3">
+				<label class="form-control-label">Charge</label>
+				<input type="text" name="charges-${
+					index - 1
+				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
+		chargesStructure[index - 1]?.charges
+	}>
+			</div>
+			<div class="d-flex flex-grow-1 align-items-center justify-content-start">
+				${
+					chargesStructure.length !== 1
+						? `<button type="button" class="btn btn-danger custom-btn removeChargesInput" id="${
+								index - 1
+						  }"><i class="la la-times"></i></button>`
+						: ''
+				}
+				${
+					chargesStructure.length == index
+						? `<button type="button" class="btn btn-primary custom-btn addChargesInput"><i class="la la-plus"></i></button>`
+						: ''
+				}
+			</div>
+		</div>
+	`;
+
+	$('#category').select2();
 	//on clicking 'product in stock' tab
 	$('#activeAccountTab').on('click', () => {
 		const query_params = { in_stock: true };
@@ -121,16 +165,18 @@ $(document).ready(function () {
 	});
 
 	$('#createProduct').on('click', function (e) {
-		let data = serializeForm('#addProductForm');
-		data['quantity'] = removeCommas(data['quantity']);
-		data['quantity_left'] = removeCommas(data['quantity_left']);
-		data['unit_price'] = removeCommas(data['unit_price']);
-		data['agent_price'] = removeCommas(data['agent_price']);
-		console.log(data);
+		// let data = serializeForm('#addProductForm');
+
+		formData['quantity'] = removeCommas(formData['quantity']);
+		formData['quantity_left'] = removeCommas(formData['quantity_left']);
+		formData['unit_price'] = removeCommas(formData['unit_price']);
+		formData['in_stock'] = formData.in_stock ? formData.in_stock : 'on';
+
+		console.log(formData);
 		$.ajax({
 			url: '/app/create_product',
 			method: 'post',
-			data:data,
+			data: { formData: JSON.stringify(formData) },
 			beforeSend: function () {
 				$('#createProduct').addClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
@@ -147,10 +193,10 @@ $(document).ready(function () {
 							// options
 							icon: 'glyphicon glyphicon-warning-sign',
 							title: '',
-							message: 'Product creation failed'
+							message: 'Product creation failed',
 						},
 						{
-							type: 'danger'
+							type: 'danger',
 						}
 					);
 					console.log('please try again');
@@ -158,13 +204,35 @@ $(document).ready(function () {
 				$('#createProduct').removeClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
-			}
+			},
+			error: function () {
+				showNotify('An error occured, try again', 'danger');
+				$('#createProduct').removeClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+			},
 		});
 	});
 
-	addProductImageModal.on('show.bs.modal', function (e){
-		const productId = $(e.relatedTarget).data('product')
-		$('#productId').val(productId)
+	const handleInput = ({ target: { name, value } }) => {
+		const block = name.split('-')[0];
+		if (Object.keys(defaultStructure).includes(block)) {
+			const modifier = Number(name.split('-')[1]);
+			chargesStructure[modifier][block] = value;
+			console.log('-----charge structure----');
+			console.log(chargesStructure);
+			formData['charges_structure'] = chargesStructure;
+		} else {
+			formData[name] = value;
+		}
+		console.log(formData);
+	};
+
+	$('.form-control').on('change', handleInput);
+
+	addProductImageModal.on('show.bs.modal', function (e) {
+		const productId = $(e.relatedTarget).data('product');
+		$('#productId').val(productId);
 	});
 
 	createProductImage.on('click', function (e) {
@@ -186,7 +254,35 @@ $(document).ready(function () {
 				createProductImage.removeClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
-			}
+			},
 		});
+	});
+
+	function computeChargesInputList() {
+		let chargesStr = '';
+		for (let i = 1; i <= chargesStructure.length; i++) {
+			chargesStr += chargesTemplate(i);
+		}
+		$('#charges_structure_wrapper').html(chargesStr);
+		$('.form-control').on('change', handleInput);
+	}
+
+	$('#addProductModal').on('show.bs.modal', () => {
+		computeChargesInputList();
+	});
+
+	$(document).on('click', '.addChargesInput', () => {
+		chargesStructure = [...chargesStructure, defaultStructure];
+		console.log(chargesStructure);
+		computeChargesInputList();
+	});
+
+	$(document).on('click', '.removeChargesInput', ({ target: { id } }) => {
+		console.log(id);
+		if (chargesStructure.length > 1) {
+			chargesStructure.splice(id, 1);
+			computeChargesInputList();
+		}
+		console.log(chargesStructure);
 	});
 });

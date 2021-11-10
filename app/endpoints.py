@@ -30,6 +30,7 @@ from .models import (
     Agent,
     Account,
     AccountLogin,
+    PaymentAccount,
     ReferenceNumbers,
     Transaction,
     Product,
@@ -128,7 +129,8 @@ class GetProducts(APIView):
 class CreateProduct(APIView):
     @staticmethod
     def post(request):
-        data = dict(request.POST.dict())
+        data = json.loads(request.data.get("formData", dict()))
+        data["charges_structure"] = json.dumps(data["charges_structure"])
         if data["in_stock"] == "on":
             data["in_stock"] = True
         else:
@@ -176,54 +178,68 @@ class InitiateTransaction(APIView):
         transaction_type = "debit"
         transaction_description = request.data.get("transaction_description", None)
         product_id = request.data.get("product_id", None)
-        account_id = request.session["account_id"]
+        # account_id = request.session["account_id"]
         service_charge = Decimal(request.data.get("service_charge", 0))
         payment_type = request.data.get("payment_type", None)
         shipping_address = request.data.get("shipping_address", None)
         mobile_number = request.data.get("mobile_number", None)
         transaction_date = timezone.now()
 
-        print("#####3")
-        print(account_id)
-        url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
+        # print(account_id)
+        # url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
 
-        payable_amount = (quantity * amount) + service_charge
+        payable_amount = (quantity * amount) + (service_charge * quantity)
 
-        account = Account.get_account(account_id=account_id)
+        # account = Account.get_account(account_id=account_id)
 
         reference_number = ReferenceNumbers.create_reference_number()
 
-        details = {
-            "agent": account.agent,
-            "product_id": product_id,
-            "quantity": quantity,
-            "amount": payable_amount,
-            "reference_number": reference_number,
-            "account_number": request.session["username"],
-            "fi": "vfd",
-            "transaction_type": transaction_type,
-            "transaction_description": transaction_description,
-            "transaction_date": transaction_date,
-            "balance_before": account.balance,
-        }
+        payment_account = PaymentAccount.get_available_account()
 
-        new_transaction = Transaction.create_transaction(**details)
-
-        if new_transaction:
-            if payment_type == "wallet transfer":
-                request_data = {
-                    "account_number": account_number,
-                    "payable_amount": payable_amount,
-                }
-
-                # TODO: send required fields and value to aggregator for forwarding
-
-            else:
-                return JsonResponse(data={"status": True})
-        else:
+        if payment_account is None:
             return JsonResponse(
                 data={
                     "status": False,
                     "message": "An error has occurred, please try again",
                 }
             )
+
+        details = {
+            # "agent": account.agent,
+            "product_id": product_id,
+            "quantity": quantity,
+            "amount": payable_amount,
+            "reference_number": reference_number,
+            "account_number": payment_account.account_number,
+            "fi": "vfd",
+            "transaction_type": transaction_type,
+            "transaction_description": transaction_description,
+            "transaction_date": transaction_date,
+            "shipping_address": shipping_address,
+            "mobile_number": mobile_number,
+            "charges": service_charge * quantity,
+        }
+
+        new_transaction = Transaction.create_transaction(**details)
+
+        if new_transaction:
+            payment_account = PaymentAccount.update_payment_account_status(
+                payment_account.id, "in-use"
+            )
+            if payment_account:
+                return JsonResponse(
+                    data={"status": True, "account_number": details["account_number"]}
+                )
+            return JsonResponse(
+                data={
+                    "status": False,
+                    "message": "Account update failed",
+                }
+            )
+
+        return JsonResponse(
+            data={
+                "status": False,
+                "message": "An error has occurred, please try again",
+            }
+        )

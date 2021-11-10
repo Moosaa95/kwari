@@ -679,6 +679,44 @@ class Account(ModelMixin):
         return accounts_summary
 
 
+class PaymentAccount(models.Model):
+    STATUS = (
+        ("inactive", "Inactive"),
+        ("in-use", "In-use"),
+        ("available", "Available"),
+    )
+    account_number = models.CharField(max_length=10, unique=True)
+    status = models.CharField(max_length=12, choices=STATUS, default="available")
+
+    def __str__(self):
+        return self.account_number
+
+    @classmethod
+    def create_payment_account(cls, **kwargs):
+        try:
+            payment_account = cls.objects.create(**kwargs)
+            return payment_account
+        except IntegrityError:
+            return None
+
+    @classmethod
+    def get_available_account(cls):
+        accounts = cls.objects.filter(status="available")
+        if len(accounts) < 1:
+            return None
+        return accounts[0]
+
+    @classmethod
+    def update_payment_account_status(cls, id, status):
+        try:
+            payment_account = cls.objects.get(id=id)
+            payment_account.status = status
+            payment_account.save(update_fields=["status"])
+            return payment_account
+        except cls.DoesNotExist:
+            return None
+
+
 class ReferenceNumbers(models.Model):
     reference_number = models.CharField(max_length=10, unique=True)
 
@@ -729,7 +767,7 @@ class Transaction(ModelMixin):
         ("debit", "debit"),
     )
 
-    agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(
         "Product", on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -740,10 +778,12 @@ class Transaction(ModelMixin):
     account_number = models.CharField(max_length=255, null=True, blank=True)
     fi = models.CharField(max_length=255, null=True, blank=True)
     remarks = models.CharField(max_length=255, null=True, blank=True)
+    shipping_address = models.CharField(max_length=255, null=True, blank=True)
+    mobile_number = models.CharField(max_length=11)
 
     charges = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
 
     transaction_type = models.CharField(max_length=255, choices=TXN_TYPE)
     transaction_description = models.CharField(max_length=255, null=True, blank=True)
@@ -785,7 +825,7 @@ class Transaction(ModelMixin):
         queryset = None
         fields = [
             "transaction_date",
-            "agent__name",
+            # "agent__name",
             "product__name",
             "product__code",
             "product_id",
@@ -1107,14 +1147,14 @@ class Product(ModelMixin):
     code = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)
-    unit_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    agent_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=19, decimal_places=2)
+    charges_structure = models.TextField(blank=True)
     quantity_left = models.IntegerField(default=0)
     in_stock = models.BooleanField(default=True)
     stock_date = models.DateTimeField(default=timezone.now)
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
-    service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     objects = models.Manager()
 
     class Meta:
@@ -1174,7 +1214,7 @@ class Product(ModelMixin):
             "quantity",
             "category__name",
             "unit_price",
-            "agent_price",
+            "charges_structure",
             "quantity_left",
             "in_stock",
             "stock_date",
@@ -1251,7 +1291,8 @@ class ProductImage(AbstractImage):
         values = [
             "product__id",
             "product__name",
-            "product__agent_price",
+            "product__unit_price",
+            "product__charges_structure",
             "product__quantity_left",
             "image",
         ]
