@@ -1223,9 +1223,13 @@ class Product(ModelMixin):
         ]
 
         if type(in_stock) is bool:
-            products = cls.objects.filter(in_stock=True).values(*values)
+            products = (
+                cls.objects.filter(in_stock=True)
+                .values(*values)
+                .order_by("-created_at")
+            )
         else:
-            products = cls.objects.values(*values)
+            products = cls.objects.values(*values).order_by("-created_at")
         return list(products)
 
     @classmethod
