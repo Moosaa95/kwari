@@ -1169,7 +1169,12 @@ class Product(ModelMixin):
     @classmethod
     def create_product(cls, **kwargs):
         try:
-            product = cls.objects.create(**kwargs)
+            # product = cls.objects.create(**kwargs)
+            tags = kwargs.pop("tags")
+            product = cls(**kwargs)
+            tag = Tag.get_tag(id=tags)
+            product.save()
+            product.tags.add(tag)
             return product
         except IntegrityError as e:
             return {"product": None, "message": e.args[0]}
@@ -1362,6 +1367,7 @@ class Tag(ModelMixin):
         tags = None
         if "all" in kwargs:
             tags = cls.objects.values(
+                "id",
                 "name",
                 "tag_id",
             )

@@ -106,33 +106,33 @@ $(document).ready(function () {
 	const createProductImage = $('#createProductImage');
 	let formData = {};
 
-	const defaultStructure = { 'start-0': 0, 'end-0': 0, 'charges-0': 0 };
+	const defaultStructure = { start: '0', end: '0', charges: '0' };
 	const structureKeys = ['start', 'end', 'charges'];
 	let chargesStructure = [defaultStructure];
 	const chargesTemplate = (index) => `
 		<div class="form-group row">
 			<div class="col-3">
 				<label class="form-control-label">Quantity Start</label>
-				<input type="text" name="start-${
-					index - 1
-				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1][`start-${index - 1}`]
+				<input type="text" name="start-${index - 1}" id="start-${
+		index - 1
+	}" maxlength="255" class="form-control" inputmode="numeric" pattern="[0-9]" value=${
+		chargesStructure[index - 1].start || ''
 	}>
 			</div>
 			<div class="col-3">
 				<label class="form-control-label">Quantity End</label>
-				<input type="text" name="end-${
-					index - 1
-				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1][`end-${index - 1}`]
+				<input type="text" name="end-${index - 1}" id="end-${
+		index - 1
+	}" maxlength="255" class="form-control" inputmode="numeric" pattern="[0-9]" value=${
+		chargesStructure[index - 1].end || ''
 	}>
 			</div>
 			<div class="col-3">
 				<label class="form-control-label">Charge</label>
-				<input type="text" name="charges-${
-					index - 1
-				}" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1][[`charges-${index - 1}`]]
+				<input type="text" name="charges-${index - 1}" id="charges-${
+		index - 1
+	}" maxlength="255" class="form-control" inputmode="numeric" pattern="[0-9]" value=${
+		chargesStructure[index - 1].charges || ''
 	}>
 			</div>
 			<div class="d-flex flex-grow-1 align-items-center justify-content-start">
@@ -153,6 +153,7 @@ $(document).ready(function () {
 	`;
 
 	$('#category').select2();
+	$('#tag').select2();
 	//on clicking 'product in stock' tab
 	$('#activeAccountTab').on('click', () => {
 		const query_params = { in_stock: true };
@@ -172,17 +173,6 @@ $(document).ready(function () {
 		formData['quantity_left'] = removeCommas(formData['quantity_left']);
 		formData['unit_price'] = removeCommas(formData['unit_price']);
 		formData['in_stock'] = formData.in_stock ? formData.in_stock : 'on';
-		const chargesStructure = [];
-		$.each(formData.charges_structure, (index, value) => {
-			chargesStructure[index] = {
-				start: value[`start-${index}`],
-				end: value[`end-${index}`],
-				charges: value[`charges-${index}`],
-			};
-		});
-		formData['charges_structure'] = chargesStructure;
-
-		console.log(formData);
 		$.ajax({
 			url: '/app/create_product',
 			method: 'post',
@@ -228,7 +218,10 @@ $(document).ready(function () {
 		const block = name.split('-')[0];
 		if (structureKeys.includes(block)) {
 			const modifier = name.split('-')[1];
-			chargesStructure[modifier][name] = value;
+			chargesStructure[modifier] = {
+				...chargesStructure[modifier],
+				[block]: value,
+			};
 			formData['charges_structure'] = chargesStructure;
 		} else {
 			formData[name] = value;
@@ -272,6 +265,7 @@ $(document).ready(function () {
 			chargesStr += chargesTemplate(i);
 		}
 		$('#charges_structure_wrapper').html(chargesStr);
+
 		$('.form-control').on('change', handleInput);
 	}
 
@@ -280,20 +274,11 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '.addChargesInput', () => {
-		const length = chargesStructure.length;
-		const start = `start-${length}`;
-		const end = `end-${length}`;
-		const charges = `charges-${length}`;
-		chargesStructure = [
-			...chargesStructure,
-			{ [start]: 0, [end]: 0, [charges]: 0 },
-		];
-		console.log(chargesStructure);
+		chargesStructure = [...chargesStructure, defaultStructure];
 		computeChargesInputList();
 	});
 
 	$(document).on('click', '.removeChargesInput', ({ target: { id } }) => {
-		console.log(id);
 		if (chargesStructure.length > 1) {
 			chargesStructure.splice(id, 1);
 			computeChargesInputList();

@@ -119,3 +119,7 @@ table td {
     height: 750px;
     overflow-y: scroll;
 }
+
+.alert{
+    z-index: 1100 !important;
+}

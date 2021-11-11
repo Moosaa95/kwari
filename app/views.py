@@ -9,7 +9,7 @@ from django.views.generic import FormView
 from django.views.generic.base import View
 
 from .functions import money_format
-from .models import Agent, Account, Transaction, Category, Product
+from .models import Agent, Account, Transaction, Category, Product, Tag
 from login.models import User
 
 
@@ -54,7 +54,9 @@ class ProductsManagementView(LoginRequiredMixin, PermissionRequiredMixin, View):
         tpis = len(Product.objects.filter(in_stock=True))
         tpos = len(Product.objects.filter(in_stock=False))
         categories = Category.objects.all()
+        tags = Tag.get_tags(all="all")
         self.context["categories"] = categories
+        self.context["tags"] = tags
         self.context["total_products"] = total_products
         self.context["tpis"] = tpis
         self.context["tpos"] = tpos
