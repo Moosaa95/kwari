@@ -188,7 +188,7 @@ class InitiateTransaction(APIView):
         # print(account_id)
         # url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
 
-        payable_amount = (quantity * amount) + (service_charge * quantity)
+        payable_amount = quantity * amount
 
         # account = Account.get_account(account_id=account_id)
 

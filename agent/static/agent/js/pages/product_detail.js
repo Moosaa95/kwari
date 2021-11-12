@@ -103,10 +103,7 @@ $(document).ready(function () {
 					$('#accountDetails').modal('show');
 					$('#payableAmount').html(`
 						&#8358;
-						${
-							paymentDetails.amount * paymentDetails.quantity +
-							paymentDetails.service_charge * paymentDetails.quantity
-						}`);
+						${paymentDetails.amount * paymentDetails.quantity}`);
 					$('#accountNumber').html(response.account_number);
 					showNotify(
 						'transaction intiated, please make payment within 30 minutes',
