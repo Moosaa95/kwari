@@ -130,7 +130,7 @@ class CreateProduct(APIView):
     @staticmethod
     def post(request):
         data = json.loads(request.data.get("formData", dict()))
-        data["charges_structure"] = json.dumps(data["charges_structure"])
+        data["price_structure"] = json.dumps(data["price_structure"])
         if data["in_stock"] == "on":
             data["in_stock"] = True
         else:
@@ -173,22 +173,18 @@ class GetHomeProductsImages(APIView):
 class InitiateTransaction(APIView):
     def post(self, request):
         quantity = int(request.data.get("quantity", 1))
-        amount = Decimal(request.data.get("amount", None))
         fi = "vfd"
         transaction_type = "debit"
         transaction_description = request.data.get("transaction_description", None)
         product_id = request.data.get("product_id", None)
-        # account_id = request.session["account_id"]
-        service_charge = Decimal(request.data.get("service_charge", 0))
+        price = Decimal(request.data.get("price", 0))
         payment_type = request.data.get("payment_type", None)
         shipping_address = request.data.get("shipping_address", None)
         mobile_number = request.data.get("mobile_number", None)
         transaction_date = timezone.now()
-
-        # print(account_id)
         # url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
 
-        payable_amount = quantity * amount
+        payable_amount = quantity * price
 
         # account = Account.get_account(account_id=account_id)
 
@@ -205,7 +201,6 @@ class InitiateTransaction(APIView):
             )
 
         details = {
-            # "agent": account.agent,
             "product_id": product_id,
             "quantity": quantity,
             "amount": payable_amount,
@@ -217,7 +212,7 @@ class InitiateTransaction(APIView):
             "transaction_date": transaction_date,
             "shipping_address": shipping_address,
             "mobile_number": mobile_number,
-            "charges": service_charge * quantity,
+            "price": price,
         }
 
         new_transaction = Transaction.create_transaction(**details)

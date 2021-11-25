@@ -10,8 +10,8 @@ $(document).ready(function () {
 	const plusQty = $('#plus-quantity');
 	let paymentDetails = {};
 	let quantity = 1;
-	let service_charge;
-	const charges_structure = JSON.parse(product.charges_structure);
+	let price;
+	const price_structure = JSON.parse(product.price_structure);
 
 	$.each(product.images, (_, value) => {
 		const item = `<div class="product-image "><img src="/media/${value}" alt="product"></div>`;
@@ -20,11 +20,11 @@ $(document).ready(function () {
 	$('#name').text(product.name);
 	$('#price').text(commaSeparator(product.unit_price));
 	$('#qty').text(commaSeparator(product.quantity_left.toString()));
-	$.each(charges_structure, (_, value) => {
-		$('#charges_structure').append(`
+	$.each(price_structure, (_, value) => {
+		$('#price_structure').append(`
 		<h5 class="item-price">
 			<span>Quantity: ${value.start} - ${value.end}</span>
-			<span>Service Charge: <i>&#8358;</i>${value.charges} per quantity</span>
+			<span>Service Charge: <i>&#8358;</i>${value.price} per quantity</span>
 		</h5>`);
 	});
 
@@ -47,11 +47,11 @@ $(document).ready(function () {
 	$('#proceedPayment').on('click', (e) => {
 		e.preventDefault();
 		quantity = $('#product-quantity').val();
-		service_charge = charges_structure.find(
+		service_charge = price_structure.find(
 			(structure) =>
 				Number(structure.start) <= Number(quantity) &&
 				Number(structure.end) >= Number(quantity)
-		).charges;
+		).price;
 		$('#purchaseModal').modal('show');
 	});
 
@@ -80,10 +80,9 @@ $(document).ready(function () {
 
 		paymentDetails = {
 			quantity,
-			amount: product.unit_price,
 			transaction_description: 'bank transfer payment',
 			product_id: product.id,
-			service_charge,
+			price,
 			payment_type: 'bank transfer',
 			mobile_number,
 			shipping_address,

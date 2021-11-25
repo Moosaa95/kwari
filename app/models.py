@@ -773,15 +773,14 @@ class Transaction(ModelMixin):
     )
     quantity = models.IntegerField(default=0)
     amount = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     reference_number = models.CharField(max_length=10, unique=True)
-    third_party_ref = models.CharField(max_length=255, null=True, blank=True)
     account_number = models.CharField(max_length=255, null=True, blank=True)
     fi = models.CharField(max_length=255, null=True, blank=True)
     remarks = models.CharField(max_length=255, null=True, blank=True)
     shipping_address = models.CharField(max_length=255, null=True, blank=True)
     mobile_number = models.CharField(max_length=11)
 
-    charges = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     # balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     # balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
 
@@ -789,7 +788,6 @@ class Transaction(ModelMixin):
     transaction_description = models.CharField(max_length=255, null=True, blank=True)
     transaction_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-    is_refunded = models.BooleanField(default=False)
 
     objects = models.Manager()
 
@@ -799,7 +797,6 @@ class Transaction(ModelMixin):
             models.Index(
                 fields=[
                     "reference_number",
-                    "third_party_ref",
                     "agent",
                     "product",
                 ]
@@ -833,16 +830,12 @@ class Transaction(ModelMixin):
             "quantity",
             "transaction_description",
             "amount",
-            "balance_after",
-            "charges",
-            "third_party_ref",
+            "price",
             "status",
             "reference_number",
             "remarks",
-            "balance_before",
             "transaction_type",
             "transaction_date",
-            "is_refunded",
         ]
 
         if conditions:
@@ -1147,8 +1140,7 @@ class Product(ModelMixin):
     code = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)
-    unit_price = models.DecimalField(max_digits=19, decimal_places=2)
-    charges_structure = models.TextField(blank=True)
+    price_structure = models.TextField(blank=True)
     quantity_left = models.IntegerField(default=0)
     in_stock = models.BooleanField(default=True)
     stock_date = models.DateTimeField(default=timezone.now)
@@ -1177,6 +1169,7 @@ class Product(ModelMixin):
             product.tags.add(tag)
             return product
         except IntegrityError as e:
+            print(e)
             return {"product": None, "message": e.args[0]}
 
     @classmethod
@@ -1218,8 +1211,7 @@ class Product(ModelMixin):
             "code",
             "quantity",
             "category__name",
-            "unit_price",
-            "charges_structure",
+            "price_structure",
             "quantity_left",
             "in_stock",
             "stock_date",

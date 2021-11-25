@@ -24,8 +24,7 @@ const ProductTable = (function () {
 				{ data: 'sn' },
 				{ data: 'name' },
 				{ data: 'quantity' },
-				{ data: 'unit_price' },
-				// { data: 'agent_price' },
+				{ data: 'code' },
 				{ data: 'category__name' },
 				{ data: 'quantity_left' },
 				{ data: 'in_stock' },
@@ -106,46 +105,46 @@ $(document).ready(function () {
 	const createProductImage = $('#createProductImage');
 	let formData = {};
 
-	const defaultStructure = { start: '0', end: '0', charges: '0' };
-	const structureKeys = ['start', 'end', 'charges'];
-	let chargesStructure = [defaultStructure];
-	const chargesTemplate = (index) => `
+	const defaultStructure = { start: '0', end: '0', price: '0' };
+	const structureKeys = ['start', 'end', 'price'];
+	let priceStructure = [defaultStructure];
+	const priceTemplate = (index) => `
 		<div class="form-group row">
 			<div class="col-3">
 				<label class="form-control-label">Quantity Start</label>
-				<input type="text" name="start-${index - 1}" id="start-${
+				<input type="number" name="start-${index - 1}" id="start-${
 		index - 1
 	}" maxlength="255" class="form-control" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1].start || ''
+		priceStructure[index - 1].start || ''
 	}>
 			</div>
 			<div class="col-3">
 				<label class="form-control-label">Quantity End</label>
-				<input type="text" name="end-${index - 1}" id="end-${
+				<input type="number" name="end-${index - 1}" id="end-${
 		index - 1
 	}" maxlength="255" class="form-control" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1].end || ''
+		priceStructure[index - 1].end || ''
 	}>
 			</div>
 			<div class="col-3">
-				<label class="form-control-label">Charge</label>
-				<input type="text" name="charges-${index - 1}" id="charges-${
+				<label class="form-control-label">Price</label>
+				<input type="text" name="price-${index - 1}" id="price-${
 		index - 1
 	}" maxlength="255" class="form-control" inputmode="numeric" pattern="[0-9]" value=${
-		chargesStructure[index - 1].charges || ''
+		priceStructure[index - 1].price || ''
 	}>
 			</div>
 			<div class="d-flex flex-grow-1 align-items-center justify-content-start">
 				${
-					chargesStructure.length !== 1
-						? `<button type="button" class="btn btn-danger custom-btn removeChargesInput" id="${
+					priceStructure.length !== 1
+						? `<button type="button" class="btn btn-danger custom-btn removePriceInput" id="${
 								index - 1
 						  }"><i class="la la-times"></i></button>`
 						: ''
 				}
 				${
-					chargesStructure.length == index
-						? `<button type="button" class="btn btn-primary custom-btn addChargesInput"><i class="la la-plus"></i></button>`
+					priceStructure.length == index
+						? `<button type="button" class="btn btn-primary custom-btn addPriceInput"><i class="la la-plus"></i></button>`
 						: ''
 				}
 			</div>
@@ -171,7 +170,6 @@ $(document).ready(function () {
 
 		formData['quantity'] = removeCommas(formData['quantity']);
 		formData['quantity_left'] = removeCommas(formData['quantity_left']);
-		formData['unit_price'] = removeCommas(formData['unit_price']);
 		formData['in_stock'] = formData.in_stock ? formData.in_stock : 'on';
 		$.ajax({
 			url: '/app/create_product',
@@ -185,21 +183,11 @@ $(document).ready(function () {
 			success: function (response) {
 				if (response.status) {
 					$('#addProductModal').modal('hide');
+					showNotify('Product creation successful', 'success');
 					ProductTable.refresh();
 				} else {
 					$('#addProductModal').modal('hide');
-					$.notify(
-						{
-							// options
-							icon: 'glyphicon glyphicon-warning-sign',
-							title: '',
-							message: 'Product creation failed',
-						},
-						{
-							type: 'danger',
-						}
-					);
-					console.log('please try again');
+					showNotify('Product creation failed', 'danger');
 				}
 				$('#createProduct').removeClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
@@ -218,15 +206,14 @@ $(document).ready(function () {
 		const block = name.split('-')[0];
 		if (structureKeys.includes(block)) {
 			const modifier = name.split('-')[1];
-			chargesStructure[modifier] = {
-				...chargesStructure[modifier],
+			priceStructure[modifier] = {
+				...priceStructure[modifier],
 				[block]: value,
 			};
-			formData['charges_structure'] = chargesStructure;
+			formData['price_structure'] = priceStructure;
 		} else {
 			formData[name] = value;
 		}
-		console.log(formData);
 	};
 
 	$('.form-control').on('change', handleInput);
@@ -259,29 +246,32 @@ $(document).ready(function () {
 		});
 	});
 
-	function computeChargesInputList() {
-		let chargesStr = '';
-		for (let i = 1; i <= chargesStructure.length; i++) {
-			chargesStr += chargesTemplate(i);
+	function computePriceInputList() {
+		let priceStr = '';
+		for (let i = 1; i <= priceStructure.length; i++) {
+			priceStr += priceTemplate(i);
 		}
-		$('#charges_structure_wrapper').html(chargesStr);
+		$('#price_structure_wrapper').html(priceStr);
 
 		$('.form-control').on('change', handleInput);
 	}
 
 	$('#addProductModal').on('show.bs.modal', () => {
-		computeChargesInputList();
+		computePriceInputList();
 	});
 
-	$(document).on('click', '.addChargesInput', () => {
-		chargesStructure = [...chargesStructure, defaultStructure];
-		computeChargesInputList();
+	$(document).on('click', '.addPriceInput', () => {
+		priceStructure = [...priceStructure, defaultStructure];
+		computePriceInputList();
 	});
 
-	$(document).on('click', '.removeChargesInput', ({ target: { id } }) => {
-		if (chargesStructure.length > 1) {
-			chargesStructure.splice(id, 1);
-			computeChargesInputList();
+	$(document).on('click', '.removePriceInput', ({ target: { id } }) => {
+		if (priceStructure.length > 1) {
+			priceStructure = priceStructure.filter(
+				(_, index) => index !== Number(id)
+			);
+			// priceStructure.splice(id, 1);
+			computePriceInputList();
 		}
 	});
 });
