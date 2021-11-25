@@ -1292,8 +1292,7 @@ class ProductImage(AbstractImage):
         values = [
             "product__id",
             "product__name",
-            "product__unit_price",
-            "product__charges_structure",
+            "product__price_structure",
             "product__quantity_left",
             "image",
         ]

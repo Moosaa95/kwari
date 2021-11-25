@@ -61,7 +61,6 @@ $(document).ready(function () {
 							</figure>
 							<a class="product-info-wrapper" href="/agent/product_detail?product_id=${value.product__id}">
 								<span><h2 class="fw-600 mb-1">${value.product__name}<br></h2></span>
-								<span><i class="ti-location-pin mr-2"></i>Price: ${value.product__unit_price}</span>
 								<span><i class="ti-location-pin mr-2"></i>Quantity Available: ${value.product__quantity_left}</span>
 							</a>
                         </div>`;

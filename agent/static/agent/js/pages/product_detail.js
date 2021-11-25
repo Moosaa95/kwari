@@ -18,13 +18,12 @@ $(document).ready(function () {
 		addAndRefreshCarousel(productCarousel, item);
 	});
 	$('#name').text(product.name);
-	$('#price').text(commaSeparator(product.unit_price));
 	$('#qty').text(commaSeparator(product.quantity_left.toString()));
 	$.each(price_structure, (_, value) => {
 		$('#price_structure').append(`
 		<h5 class="item-price">
 			<span>Quantity: ${value.start} - ${value.end}</span>
-			<span>Service Charge: <i>&#8358;</i>${value.price} per quantity</span>
+			<span>Price: <i>&#8358;</i>${value.price} per quantity</span>
 		</h5>`);
 	});
 
@@ -47,7 +46,7 @@ $(document).ready(function () {
 	$('#proceedPayment').on('click', (e) => {
 		e.preventDefault();
 		quantity = $('#product-quantity').val();
-		service_charge = price_structure.find(
+		price = price_structure.find(
 			(structure) =>
 				Number(structure.start) <= Number(quantity) &&
 				Number(structure.end) >= Number(quantity)
@@ -70,7 +69,7 @@ $(document).ready(function () {
 			return;
 		}
 
-		if (!service_charge) {
+		if (!price) {
 			showNotify(
 				'inputted quantity is not within service charge structure',
 				'danger'
@@ -100,9 +99,10 @@ $(document).ready(function () {
 				if (response.status) {
 					$('#purchaseModal').modal('hide');
 					$('#accountDetails').modal('show');
+					console.log(paymentDetails);
 					$('#payableAmount').html(`
 						&#8358;
-						${paymentDetails.amount * paymentDetails.quantity}`);
+						${paymentDetails.price * paymentDetails.quantity}`);
 					$('#accountNumber').html(response.account_number);
 					showNotify(
 						'transaction intiated, please make payment within 30 minutes',
