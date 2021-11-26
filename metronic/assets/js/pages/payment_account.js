@@ -40,9 +40,9 @@ const PaymentTable = (function () {
 										<a class="dropdown-item" href="#" data-toggle="modal" data-target="#addAccountModal" data-account=${btoa(
 											JSON.stringify(full)
 										)}><i class="la la-edit"></i>Edit</a>
-										<a class="dropdown-item" href="#" id="deleteTerminal" data-account="${
-											full.terminal_id
-										}"><i class="la la-trash"></i>Delete</a>
+										<a class="dropdown-item" href="#" data-toggle="modal" data-target="#deleteAccountModal" data-account=${btoa(
+											JSON.stringify(full)
+										)}><i class="la la-trash"></i>Delete</a>
 									</div>
 								</span>`;
 					},
@@ -100,7 +100,6 @@ $(document).ready(function () {
 		}
 		const formData = serializeForm('#addAccountForm');
 		formData.id = accountDetail?.id;
-		console.log(formData);
 		$.post({
 			url,
 			data: formData,
@@ -110,10 +109,11 @@ $(document).ready(function () {
 				);
 			},
 			success: function (response) {
-				if (response) {
+				if (response.status) {
 					$('#addAccountModal').modal('hide');
 					PaymentTable.refresh();
 					showNotify(`Account ${edit ? 'updated' : 'created'} successfully`);
+					edit = false;
 				} else {
 					showNotify('An error occured, please try again', 'danger');
 				}
@@ -144,90 +144,47 @@ $(document).ready(function () {
 		}
 	});
 
-	$(document).on('click', '#deleteTerminal', function (e) {
-		e.preventDefault();
-		// var terminal = $(e.target).data('terminal');
-		const terminal = $(e.currentTarget).data('terminal');
-		console.log(terminal);
-		$.ajax({
-			url: '/agent/delete_terminal',
-			type: 'POST',
-			dataType: 'json',
-			data: { terminal_id: terminal },
-			success: function (response) {
-				if (response.result) {
-					PaymentTable.refresh();
-				} else {
-					alert('you can not delete terminal');
-				}
-			},
-		});
+	$('#deleteAccountModal').on('show.bs.modal', (e) => {
+		const data = $(e.relatedTarget).data('account');
+		accountDetail = data ? JSON.parse(atob(data)) : {};
+		$('#deleteConfirmation').html(
+			`Are you sure you want to delete this account: <b>${accountDetail.account_number}</b>?`
+		);
 	});
 
-	$('#editTerminalModal').on('show.bs.modal', function (e) {
-		const editTerminalContent = $('#editTerminalContent');
-		terminal_id = $(e.relatedTarget).data('terminal');
-		$.post(
-			'/agent/get_terminal_detail',
-			{ terminal_id: terminal_id },
-			function (response, status) {
-				editTerminalContent.empty();
-				if (response.status && response.terminal_detail) {
-					stampDuty = response.terminal_detail['has_stamp_duty'];
-					status = response.terminal_detail['status'];
-					delete response.terminal_detail['has_stamp_duty'];
-					delete response.terminal_detail['status'];
-
-					$.each(response.terminal_detail, function (key, value) {
-						editTerminalContent.append(
-							`<div class="form-group">
-                                <label for="${key}" class="form-control-label">${key}</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"></span>
-                                    </div>
-                                    <input type="text" class="form-control form-input addComma" name=${key} value="${value}"/>
-                                </div>
-                            </div>`
-						);
-					});
-					editTerminalContent.append(
-						`<div class="form-group row">
-							<div class="col-lg-6">
-								<label for="stampDuty" class="form-control-label">Has Stamp Duty</label>
-								<div class="input-group">
-									<span class="kt-switch kt-switch--icon">
-										<label>
-											<input type="checkbox" name="has_stamp_duty" class="form-control switch-input" checked="" id="stampDuty">
-												<span></span>
-										</label>
-									</span>
-								</div>
-							</div>
-							<div class="col-lg-6">
-								<label for="status" class="form-control-label">Status</label>
-								<div class="input-group">
-									<span class="kt-switch kt-switch--icon">
-										<label>
-											<input type="checkbox" name="status" class="form-control switch-input" checked="" id="status">
-												<span></span>
-										</label>
-									</span>
-								</div>
-							</div>
-						</div>`
+	$(document).on('click', '#deleteAccount', function (e) {
+		e.preventDefault();
+		$.ajax({
+			url: '/app/delete_payment_account',
+			type: 'POST',
+			dataType: 'json',
+			data: { account_id: accountDetail.id },
+			beforeSend: function () {
+				$('#deleteAccount').addClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+			},
+			success: function (response) {
+				if (response.status) {
+					$('#deleteAccountModal').modal('hide');
+					PaymentTable.refresh();
+					$('#deleteAccount').removeClass(
+						'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 					);
+				} else {
+					$('#deleteAccount').removeClass(
+						'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+					);
+					showNotify('You can not delete terminal', 'danger');
 				}
-
-				$('.form-input').on('change', function (e) {
-					editDetails[$(this).prop('name')] = $(this).val();
-				});
-
-				$('.switch-input').on('change', function (e) {
-					editDetails[$(this).prop('name')] = $(this).prop('checked');
-				});
-			}
-		);
+			},
+			error: () => {
+				$('#deleteAccount').removeClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+				showNotify('An error occurred, please try again', 'danger');
+			},
+		});
 	});
 
 	$('#saveEdits').on('click', function (e) {

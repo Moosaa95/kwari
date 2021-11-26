@@ -276,3 +276,13 @@ class UpdatePaymentAccount(APIView):
         if payment_account:
             return JsonResponse(data={"status": True}, safe=False)
         return JsonResponse(data={"status": False}, safe=False)
+
+
+class DeletePaymentAccount(APIView):
+    @staticmethod
+    def post(request):
+        account_id = request.data.get("account_id", None)
+        payment_account = PaymentAccount.delete_payment_account(account_id)
+        if payment_account:
+            return JsonResponse(data={"status": True}, safe=False)
+        return JsonResponse(data={"status": False}, safe=False)

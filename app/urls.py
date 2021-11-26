@@ -31,6 +31,11 @@ urlpatterns = [
     path(
         "update_payment_account",
         UpdatePaymentAccount.as_view(),
-        name="create_payment_account",
+        name="update_payment_account",
+    ),
+    path(
+        "delete_payment_account",
+        DeletePaymentAccount.as_view(),
+        name="delete_payment_account",
     ),
 ]
