@@ -31,14 +31,18 @@ const PaymentTable = (function () {
 					targets: -1,
 					title: 'Actions',
 					orderable: false,
-					render: function (data, type, full, meta) {
+					render: function (_, _, full, _) {
 						return `<span class="dropdown">
 									<a href="#" class="btn btn-sm btn-clean btn-icon btn-icon-md" data-toggle="dropdown" aria-expanded="true">
 									  <i class="la la-ellipsis-h"></i>
 									</a>
 									<div class="dropdown-menu dropdown-menu-right">
-										<a class="dropdown-item" href="#" data-toggle="modal" data-target="#editTerminalModal" data-terminal="${full.terminal_id}"><i class="la la-edit"></i>Edit</a>
-										<a class="dropdown-item" href="#" id="deleteTerminal" data-terminal="${full.terminal_id}"><i class="la la-trash"></i>Delete</a>
+										<a class="dropdown-item" href="#" data-toggle="modal" data-target="#addAccountModal" data-account=${btoa(
+											JSON.stringify(full)
+										)}><i class="la la-edit"></i>Edit</a>
+										<a class="dropdown-item" href="#" id="deleteTerminal" data-account="${
+											full.terminal_id
+										}"><i class="la la-trash"></i>Delete</a>
 									</div>
 								</span>`;
 					},
@@ -84,25 +88,32 @@ const PaymentTable = (function () {
 })();
 
 $(document).ready(function () {
-	let editDetails = {};
-	let stampDuty = true;
-	let status = true;
+	let accountDetail = {};
 	let terminal_id = null;
+	let edit = false;
 	PaymentTable.init();
 
 	$('#createAccount').on('click', function (e) {
-		$('#addAccountForm').ajaxSubmit({
-			url: '/app/create_payment_account',
+		let url = '/app/create_payment_account';
+		if (Object.keys(accountDetail).length > 0) {
+			url = '/app/update_payment_account';
+		}
+		const formData = serializeForm('#addAccountForm');
+		formData.id = accountDetail?.id;
+		console.log(formData);
+		$.post({
+			url,
+			data: formData,
 			beforeSend: function () {
 				$('#createAccount').addClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
 			},
-			success: function (response, status, xhr, $form) {
+			success: function (response) {
 				if (response) {
 					$('#addAccountModal').modal('hide');
 					PaymentTable.refresh();
-					location.reload();
+					showNotify(`Account ${edit ? 'updated' : 'created'} successfully`);
 				} else {
 					showNotify('An error occured, please try again', 'danger');
 				}
@@ -110,13 +121,27 @@ $(document).ready(function () {
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
 			},
-			error: (error) => {
+			error: () => {
 				$('#createAccount').removeClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
 				showNotify('An error occured, please try again', 'danger');
 			},
 		});
+	});
+
+	$('#addAccountModal').on('show.bs.modal', (e) => {
+		const data = $(e.relatedTarget).data('account');
+		accountDetail = data ? JSON.parse(atob(data)) : {};
+		if (Object.keys(accountDetail).length > 0) {
+			$('#accountLabel').html('Edit Account');
+			$('#account_number').val(accountDetail.account_number);
+			$('#status').val(accountDetail.status);
+			$('#createAccount').html('Update');
+			edit = true;
+		} else {
+			edit = false;
+		}
 	});
 
 	$(document).on('click', '#deleteTerminal', function (e) {

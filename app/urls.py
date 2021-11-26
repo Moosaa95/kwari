@@ -28,4 +28,9 @@ urlpatterns = [
         CreatePaymentAccount.as_view(),
         name="create_payment_account",
     ),
+    path(
+        "update_payment_account",
+        UpdatePaymentAccount.as_view(),
+        name="create_payment_account",
+    ),
 ]

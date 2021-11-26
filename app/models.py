@@ -726,14 +726,24 @@ class PaymentAccount(ModelMixin):
         return accounts[0]
 
     @classmethod
-    def update_payment_account_status(cls, id, status):
+    def update_payment_account(cls, id, **kwargs):
         try:
             payment_account = cls.objects.get(id=id)
-            payment_account.status = status
-            payment_account.save(update_fields=["status"])
+            payment_account.account_number = kwargs["account_number"]
+            payment_account.status = kwargs["status"]
+            payment_account.save(update_fields=["account_number", "status"])
             return payment_account
         except cls.DoesNotExist:
             return None
+
+    @classmethod
+    def delete_payment_account(cls, id, **kwargs):
+        try:
+            payment_account = cls.objects.get(id=id)
+            payment_account.delete()
+            return True
+        except cls.DoesNotExist:
+            return False
 
 
 class ReferenceNumbers(models.Model):

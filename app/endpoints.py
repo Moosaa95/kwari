@@ -260,3 +260,19 @@ class CreatePaymentAccount(APIView):
         if payment_account:
             return JsonResponse(data={"status": True}, safe=False)
         return JsonResponse(data={"status": False}, safe=False)
+
+
+class UpdatePaymentAccount(APIView):
+    @staticmethod
+    def post(request):
+        account_number = request.data.get("account_number", None)
+        status = request.data.get("status", "available")
+        account_id = request.data.get("id", None)
+        if status == "":
+            status = "available"
+        data = dict(account_number=account_number, status=status)
+        print(data)
+        payment_account = PaymentAccount.update_payment_account(account_id, **data)
+        if payment_account:
+            return JsonResponse(data={"status": True}, safe=False)
+        return JsonResponse(data={"status": False}, safe=False)
