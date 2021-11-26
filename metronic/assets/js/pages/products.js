@@ -236,7 +236,6 @@ $(document).ready(function () {
 					showNotify('picture added successfully', 'success');
 				} else {
 					showNotify('Fail to add picture', 'danger');
-					console.log('please try again');
 				}
 				addProductImageModal.modal('hide');
 				createProductImage.removeClass(
@@ -267,10 +266,7 @@ $(document).ready(function () {
 
 	$(document).on('click', '.removePriceInput', ({ target: { id } }) => {
 		if (priceStructure.length > 1) {
-			priceStructure = priceStructure.filter(
-				(_, index) => index !== Number(id)
-			);
-			// priceStructure.splice(id, 1);
+			priceStructure.splice(id, 1);
 			computePriceInputList();
 		}
 	});

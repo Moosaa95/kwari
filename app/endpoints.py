@@ -255,7 +255,6 @@ class CreatePaymentAccount(APIView):
         if status == "":
             status = "available"
         data = dict(account_number=account_number, status=status)
-        print(data)
         payment_account = PaymentAccount.create_payment_account(**data)
         if payment_account:
             return JsonResponse(data={"status": True}, safe=False)
@@ -271,7 +270,6 @@ class UpdatePaymentAccount(APIView):
         if status == "":
             status = "available"
         data = dict(account_number=account_number, status=status)
-        print(data)
         payment_account = PaymentAccount.update_payment_account(account_id, **data)
         if payment_account:
             return JsonResponse(data={"status": True}, safe=False)
