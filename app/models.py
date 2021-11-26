@@ -692,12 +692,29 @@ class PaymentAccount(models.Model):
         return self.account_number
 
     @classmethod
+    def get_payment_accounts(cls):
+        accounts = cls.objects.values("id", "account_number", "status")
+        return list(accounts)
+
+    @classmethod
     def create_payment_account(cls, **kwargs):
         try:
             payment_account = cls.objects.create(**kwargs)
             return payment_account
         except IntegrityError:
             return None
+
+    @classmethod
+    def account_summary(cls):
+        used_accounts = cls.objects.filter(status="in-use").count()
+        available_accounts = cls.objects.filter(status="available").count()
+        inactive_accounts = cls.objects.filter(status="inactive").count()
+
+        return {
+            "used_accounts": used_accounts,
+            "available_accounts": available_accounts,
+            "inactive_accounts": inactive_accounts,
+        }
 
     @classmethod
     def get_available_account(cls):

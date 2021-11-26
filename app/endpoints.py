@@ -238,3 +238,10 @@ class InitiateTransaction(APIView):
                 "message": "An error has occurred, please try again",
             }
         )
+
+
+class GetPaymentAccounts(APIView):
+    @staticmethod
+    def get(request):
+        payment_accounts = PaymentAccount.get_payment_accounts()
+        return JsonResponse(data=payment_accounts, safe=False)

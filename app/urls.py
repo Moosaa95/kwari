@@ -8,6 +8,7 @@ urlpatterns = [
     path("dashboard", Dashboard.as_view(), name="dashboard"),
     path("agents", AgentView.as_view(), name="agents"),
     path("products", ProductsManagementView.as_view(), name="products"),
+    path("accounts", AccountsManagementView.as_view(), name="accounts"),
     path("transactions", TransactionsView.as_view(), name="transactions"),
     path("reports", ReportsView.as_view(), name="reports"),
     # #################### Endpoints ######################################
@@ -17,4 +18,5 @@ urlpatterns = [
     path("get_products", GetProducts.as_view(), name="get_products"),
     path("add_product_image", AddProductImage.as_view(), name="add_product_image"),
     path("get_home_images", GetHomeProductsImages.as_view(), name="get_home_images"),
+    path("get_payment_accounts", GetPaymentAccounts.as_view(), name="get_home_images"),
 ]
