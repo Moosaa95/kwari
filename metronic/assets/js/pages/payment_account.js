@@ -1,5 +1,5 @@
 const table = $('#accountsTable');
-const TerminalTable = (function () {
+const PaymentTable = (function () {
 	var initTable1 = function (accountId) {
 		// begin first table
 		table.DataTable({
@@ -88,29 +88,33 @@ $(document).ready(function () {
 	let stampDuty = true;
 	let status = true;
 	let terminal_id = null;
-	TerminalTable.init();
-	$('#addTerminalModal').on('show-bs-modal', function (e) {
-		$('#stampDuty').prop('checked', true);
-	});
+	PaymentTable.init();
 
-	$('#createTerminal').on('click', function (e) {
-		$('#addTerminalForm').ajaxSubmit({
-			url: '/agent/create_terminal',
+	$('#createAccount').on('click', function (e) {
+		$('#addAccountForm').ajaxSubmit({
+			url: '/app/create_payment_account',
 			beforeSend: function () {
-				$('#createTerminal').addClass(
+				$('#createAccount').addClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
 			},
 			success: function (response, status, xhr, $form) {
 				if (response) {
-					$('#addTerminalModal').modal('hide');
-					TerminalTable.refresh();
+					$('#addAccountModal').modal('hide');
+					PaymentTable.refresh();
+					location.reload();
 				} else {
-					console.log('please try again');
+					showNotify('An error occured, please try again', 'danger');
 				}
-				$('#createTerminal').removeClass(
+				$('#createAccount').removeClass(
 					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
 				);
+			},
+			error: (error) => {
+				$('#createAccount').removeClass(
+					'kt-spinner kt-spinner--v2 kt-spinner--sm kt-spinner--success kt-spinner--right kt-spinner--input'
+				);
+				showNotify('An error occured, please try again', 'danger');
 			},
 		});
 	});
@@ -127,7 +131,7 @@ $(document).ready(function () {
 			data: { terminal_id: terminal },
 			success: function (response) {
 				if (response.result) {
-					TerminalTable.refresh();
+					PaymentTable.refresh();
 				} else {
 					alert('you can not delete terminal');
 				}
@@ -189,19 +193,6 @@ $(document).ready(function () {
 						</div>`
 					);
 				}
-
-				$('#stampDuty').prop('checked', stampDuty);
-				$('#status').prop('checked', status);
-
-				// $('#stampDuty').on('change',function(){
-				// 	stampDuty =  $(this).prop('checked');
-				// 	console.log(status);
-				// });
-				//
-				// $('#status').on('change',function(){
-				// 	status =  $(this).prop('checked');
-				// 	console.log(status);
-				// });
 
 				$('.form-input').on('change', function (e) {
 					editDetails[$(this).prop('name')] = $(this).val();

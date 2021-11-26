@@ -679,7 +679,7 @@ class Account(ModelMixin):
         return accounts_summary
 
 
-class PaymentAccount(models.Model):
+class PaymentAccount(ModelMixin):
     STATUS = (
         ("inactive", "Inactive"),
         ("in-use", "In-use"),
@@ -693,7 +693,9 @@ class PaymentAccount(models.Model):
 
     @classmethod
     def get_payment_accounts(cls):
-        accounts = cls.objects.values("id", "account_number", "status")
+        accounts = cls.objects.values("id", "account_number", "status").order_by(
+            "-created_at"
+        )
         return list(accounts)
 
     @classmethod

@@ -18,5 +18,14 @@ urlpatterns = [
     path("get_products", GetProducts.as_view(), name="get_products"),
     path("add_product_image", AddProductImage.as_view(), name="add_product_image"),
     path("get_home_images", GetHomeProductsImages.as_view(), name="get_home_images"),
-    path("get_payment_accounts", GetPaymentAccounts.as_view(), name="get_home_images"),
+    path(
+        "get_payment_accounts",
+        GetPaymentAccounts.as_view(),
+        name="get_payment_accounts",
+    ),
+    path(
+        "create_payment_account",
+        CreatePaymentAccount.as_view(),
+        name="create_payment_account",
+    ),
 ]
