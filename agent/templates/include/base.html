@@ -2,7 +2,7 @@
 <html lang="en-US">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Mudatex</title>
+    <title>Kwari Online</title>
     <meta name="description" content="Kwari online agent platform">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="icon" type="image/png" href="/static/agent/images/favicon.png" sizes="32x32">
@@ -41,9 +41,9 @@
                     <ul>
                         <li><a href="#" class="nav-content-bttn" data-tab="friends"><i class="ti-search"></i></a></li>
                         <li><a href="#" class="nav-content-bttn" data-tab="chats"><i class="ti-user"></i></a></li>
-                        <li><a href="" class="nav-content-bttn nav-center" data-tab="favorites"><i class="ti-plus"></i></a></li>
+                        <li><a href="/agent/home" class="nav-content-bttn nav-center" data-tab="favorites"><i class="ti-plus"></i></a></li>
                         <li><a href="#" class="nav-content-bttn" data-tab="favorites"><i class="ti-comments"></i></a></li>
-                        <li><a href="#" data-tab="archived" class="nav-content-bttn "><i class="ti-package"></i></a></li>
+                        <li><a href="#" data-tab="archived" class="nav-content-btn "><i class="ti-package"></i></a></li>
                     </ul>
                 </div>
             </div>
@@ -73,7 +73,8 @@
             <li><a href="#"><i class="ti-star"></i>Purchases</a></li>
             <li><a href="#"><i class="ti-package"></i>History</a></li>
             <li class="flex-lg-brackets"><a href="#"><i class="ti-settings"></i>Settings</a></li>
-            <li><a href="#"><i class="ti-lock"></i>Logout</a></li>
+            <li><a href="#"><i class="ti-user"></i>Sign up</a></li>
+            {#<!-- <li><a href='{%url "agent_logout"%}'><i class="ti-lock"></i>Logout</a></li> -->#}
         </ul>
     </nav>
 </div>
@@ -83,6 +84,8 @@
 <script src="/static/agent/js/plugin.js"></script>
 <script src="/static/agent/js/main.js"></script>
 <script src="/static/agent/js/utilities.js"></script>
+<script src="/static/assets/plugins/general/bootstrap-notify/bootstrap-notify.js" type="text/javascript"></script>
+<script src="/static/assets/plugins/general/js/global/integration/plugins/bootstrap-notify.init.js" type="text/javascript"></script>
 {%block script%}{%endblock%}
 </body>
 

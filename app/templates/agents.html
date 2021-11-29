@@ -49,7 +49,7 @@
                     <i class="flaticon2-layers-1"></i> Search Filters
                 </div>
             </div>
-            <div id="collapseOne4" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample4" style="">
+            <div id="collapseOne4" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample4">
                 <div class="card-body">
                     <form class="kt-form kt-form--fit kt-margin-b-20">
                         <div class="row kt-margin-b-20">
@@ -190,6 +190,21 @@
                             <input type="text" name="mobile_number" maxlength="255" class="form-control">
                         </div>
                         <div class="form-group">
+                            <label for="bvn" class="form-control-label">BVN</label>
+                            <input type="text" name="bvn" maxlength="255" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth:</label>
+                            <div class="input-group date">
+                                <input type="text" class="form-control input" name="date_of_birth" readonly="readonly" value="" id="kt_datepicker_3">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-calendar"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="email" class="form-control-label">Email</label>
                             <input type="email" name="email" maxlength="255" class="form-control">
                         </div>
@@ -283,6 +298,32 @@
 									<span class="kt-switch kt-switch--icon">
 										<label>
 											<input type="checkbox" name="status" class="form-control" checked="" id="status">
+											<span></span>
+										</label>
+									</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <label for="status" class="form-control-label">Can Request Loan</label>
+                                <div class="input-group">
+									<span class="kt-switch kt-switch--icon">
+										<label>
+											<input type="checkbox" name="can_request_loan" class="form-control" id="can_request_loan">
+											<span></span>
+										</label>
+									</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-lg-6">
+                                <label for="status" class="form-control-label">Can Request Discount</label>
+                                <div class="input-group">
+									<span class="kt-switch kt-switch--icon">
+										<label>
+											<input type="checkbox" name="can_request_discount" class="form-control" id="can_request_discount">
 											<span></span>
 										</label>
 									</span>

@@ -108,6 +108,11 @@ class ActivityLogs(models.Model):
         return data
 
 
+def validate_length(value):
+    if len(str(value)) != 11:
+        raise ValidationError(_("bvn must be 11 digits"))
+
+
 class Agent(ModelMixin):
     """
     Model to store agents bio data that use xchangebox payrep platform.
@@ -121,11 +126,14 @@ class Agent(ModelMixin):
     gender = models.CharField(
         max_length=50, choices=GENDER_CHOICES, blank=True, null=True
     )
-    business_name = models.CharField(max_length=255, blank=True, null=True)
     mobile_number = models.CharField(max_length=12, unique=True)
+    bvn = models.BigIntegerField(unique=True, validators=[validate_length], null=True)
+    date_of_birth = models.DateField(default=timezone.now)
     email = models.EmailField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255)
     state = models.CharField(max_length=10, null=True, blank=True)
+    can_request_loan = models.BooleanField(default=False)
+    can_request_discount = models.BooleanField(default=False)
     status = models.BooleanField(default=True)
 
     objects = models.Manager()
@@ -144,8 +152,9 @@ class Agent(ModelMixin):
         with transaction.atomic():
             try:
                 pin = kwargs.pop("pin")
+                account_number = kwargs["account_number"]
+                del kwargs["account_number"]
                 agent = cls.objects.create(**kwargs)
-                account_number = kwargs["mobile_number"]
                 account = Account.create_account(
                     account_number=account_number, agent=agent, pin=pin
                 )
@@ -260,13 +269,9 @@ class Agent(ModelMixin):
 class AccountLogin(models.Model):
     username = models.CharField(max_length=12, unique=True)
     password = models.CharField(max_length=255, null=True, blank=True)
-    device_id = models.CharField(max_length=255, null=True, blank=True)
-    transaction_pin = models.CharField(max_length=255, null=True, blank=True)
     pin = models.CharField(max_length=255, null=True, blank=True)
-    device_reg_pin = models.CharField(max_length=255, null=True, blank=True)
     account = models.OneToOneField("Account", on_delete=models.CASCADE)
     status = models.BooleanField(default=True)
-    session_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = models.Manager()
 
@@ -316,7 +321,7 @@ class AccountLogin(models.Model):
             return False
 
     @classmethod
-    def login(cls, request, username=None, password=None, device_id=None):
+    def login(cls, request, username=None, password=None):
         try:
             credentials = cls.objects.get(username=username)
             request.session["account_id"] = credentials.account_id
@@ -324,20 +329,16 @@ class AccountLogin(models.Model):
             if credentials.pin:
                 if credentials.pin == cls.hash_password(password):
                     url = "/agent/change_password"
-                    return {"status": True, "url": url, "device_id": device_id}
+                    return {"status": True, "url": url}
                 else:
                     message = "Your OTP is wrong."
                     return {"status": False, "message": message}
             else:
-                if credentials.device_id and credentials.device_id == device_id:
-                    if credentials.password == cls.hash_password(password):
-                        url = "/agent/wallet"
-                        return {"status": True, "url": url}
-                    else:
-                        message = "Your password is incorrect"
-                        return {"status": False, "message": message}
+                if credentials.password == cls.hash_password(password):
+                    url = "/agent/home"
+                    return {"status": True, "url": url}
                 else:
-                    message = "Your device is not registered."
+                    message = "Your password is incorrect"
                     return {"status": False, "message": message}
         except cls.DoesNotExist:
             message = "Username is incorrect."
@@ -388,19 +389,14 @@ class AccountLogin(models.Model):
         #     return None
 
     @classmethod
-    def change_password(
-        cls, username=None, password=None, device_id=None, transaction_pin=None
-    ):
+    def change_password(cls, username=None, password=None):
         try:
             credentials = cls.objects.get(username=username)
             if credentials.pin:
                 password = cls.hash_password(password)
-                transaction_pin = cls.hash_password(transaction_pin)
                 update = cls.update_credentials(
                     username=username,
                     password=password,
-                    transaction_pin=transaction_pin,
-                    device_id=device_id,
                     pin=None,
                 )
                 if update:
@@ -422,10 +418,6 @@ class Account(ModelMixin):
     TYPE_CHOICES = (("primary", "primary"), ("secondary", "secondary"))
 
     account_number = models.CharField(max_length=12, unique=True)
-    bank_account_number = models.CharField(max_length=255, null=True, blank=True)
-    bank_name = models.CharField(max_length=255, null=True, blank=True)
-    bank_code = models.CharField(max_length=255, null=True, blank=True)
-    account_type = models.CharField(max_length=10, default="primary")
     balance = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     status = models.BooleanField(default=False)
 
@@ -457,7 +449,7 @@ class Account(ModelMixin):
                     account_number=kwargs["account_number"], agent=kwargs["agent"]
                 )
                 AccountLogin.create_login(
-                    username=kwargs["account_number"],
+                    username=kwargs["agent"].mobile_number,
                     pin=kwargs["pin"],
                     account=account,
                 )
@@ -705,9 +697,14 @@ class PaymentAccount(ModelMixin):
 
     @classmethod
     def get_payment_accounts(cls):
-        accounts = cls.objects.values("id", "account_number", "status").order_by(
-            "-created_at"
-        )
+        accounts = cls.objects.values(
+            "id",
+            "company_name",
+            "rc_number",
+            "account_number",
+            "incorporation_date",
+            "status",
+        ).order_by("-created_at")
         return list(accounts)
 
     @classmethod
@@ -834,27 +831,27 @@ class Transaction(ModelMixin):
         ("debit", "debit"),
     )
 
-    agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(
         "Product", on_delete=models.SET_NULL, null=True, blank=True
     )
     quantity = models.IntegerField(default=0)
     amount = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     reference_number = models.CharField(max_length=10, unique=True)
-    third_party_ref = models.CharField(max_length=255, null=True, blank=True)
     account_number = models.CharField(max_length=255, null=True, blank=True)
     fi = models.CharField(max_length=255, null=True, blank=True)
     remarks = models.CharField(max_length=255, null=True, blank=True)
+    shipping_address = models.CharField(max_length=255, null=True, blank=True)
+    mobile_number = models.CharField(max_length=11)
 
-    charges = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
 
     transaction_type = models.CharField(max_length=255, choices=TXN_TYPE)
     transaction_description = models.CharField(max_length=255, null=True, blank=True)
     transaction_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-    is_refunded = models.BooleanField(default=False)
 
     objects = models.Manager()
 
@@ -864,7 +861,6 @@ class Transaction(ModelMixin):
             models.Index(
                 fields=[
                     "reference_number",
-                    "third_party_ref",
                     "agent",
                     "product",
                 ]
@@ -890,7 +886,7 @@ class Transaction(ModelMixin):
         queryset = None
         fields = [
             "transaction_date",
-            "agent__name",
+            # "agent__name",
             "product__name",
             "product__code",
             "product_id",
@@ -898,16 +894,12 @@ class Transaction(ModelMixin):
             "quantity",
             "transaction_description",
             "amount",
-            "balance_after",
-            "charges",
-            "third_party_ref",
+            "price",
             "status",
             "reference_number",
             "remarks",
-            "balance_before",
             "transaction_type",
             "transaction_date",
-            "is_refunded",
         ]
 
         if conditions:
@@ -1212,13 +1204,13 @@ class Product(ModelMixin):
     code = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)
-    unit_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    agent_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    price_structure = models.TextField(blank=True)
     quantity_left = models.IntegerField(default=0)
     in_stock = models.BooleanField(default=True)
     stock_date = models.DateTimeField(default=timezone.now)
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
+    # service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     objects = models.Manager()
 
     class Meta:
@@ -1233,9 +1225,15 @@ class Product(ModelMixin):
     @classmethod
     def create_product(cls, **kwargs):
         try:
-            product = cls.objects.create(**kwargs)
+            # product = cls.objects.create(**kwargs)
+            tags = kwargs.pop("tags")
+            product = cls(**kwargs)
+            tag = Tag.get_tag(id=tags)
+            product.save()
+            product.tags.add(tag)
             return product
         except IntegrityError as e:
+            print(e)
             return {"product": None, "message": e.args[0]}
 
     @classmethod
@@ -1277,8 +1275,7 @@ class Product(ModelMixin):
             "code",
             "quantity",
             "category__name",
-            "unit_price",
-            "agent_price",
+            "price_structure",
             "quantity_left",
             "in_stock",
             "stock_date",
@@ -1287,9 +1284,13 @@ class Product(ModelMixin):
         ]
 
         if type(in_stock) is bool:
-            products = cls.objects.filter(in_stock=True).values(*values)
+            products = (
+                cls.objects.filter(in_stock=True)
+                .values(*values)
+                .order_by("-created_at")
+            )
         else:
-            products = cls.objects.values(*values)
+            products = cls.objects.values(*values).order_by("-created_at")
         return list(products)
 
     @classmethod
@@ -1355,7 +1356,7 @@ class ProductImage(AbstractImage):
         values = [
             "product__id",
             "product__name",
-            "product__agent_price",
+            "product__price_structure",
             "product__quantity_left",
             "image",
         ]
@@ -1421,6 +1422,7 @@ class Tag(ModelMixin):
         tags = None
         if "all" in kwargs:
             tags = cls.objects.values(
+                "id",
                 "name",
                 "tag_id",
             )

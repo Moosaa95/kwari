@@ -16,10 +16,25 @@
           </div>
 
           <div class="form-group">
+            <label class="form-control-label">Product Code</label>
+            <input type="text" name="code" maxlength="255" class="form-control">
+          </div>
+
+          <div class="form-group">
             <label class="form-control-label">Categories</label>
-            <select name="category_id" id="category" style="width: 100%; height: 50px; line-height: 50px;">
+            <select name="category_id" class="form-control" id="category" style="width: 100%; height: 50px; line-height: 50px;">
+              <option value="">Choose a category</option>
               {% for category in categories  %}
               <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-control-label">Tags</label>
+            <select name="tags" class="form-control" id="tag" style="width: 100%; height: 50px; line-height: 50px;">
+              <option value="">Choose a tag</option>
+              {% for tag in tags  %}
+              <option value="{{ tag.id }}">{{ tag.name }}</option>
               {% endfor %}
             </select>
           </div>
@@ -28,12 +43,10 @@
             <input type="text" name="quantity" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]">
           </div>
           <div class="form-group">
-            <label class="form-control-label">Unit Price</label>
-            <input type="text" name="unit_price" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]">
+            <label class="form-control-label">Price Structure</label>
           </div>
-          <div class="form-group">
-            <label class="form-control-label">Agent Price</label>
-            <input type="text" name="agent_price" maxlength="255" class="form-control addComma" inputmode="numeric" pattern="[0-9]">
+          <div id="price_structure_wrapper">
+            
           </div>
           <div class="form-group">
             <label class="form-control-label">Quantity Left</label>

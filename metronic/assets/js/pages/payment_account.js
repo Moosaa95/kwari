@@ -22,7 +22,9 @@ const PaymentTable = (function () {
 
 			columns: [
 				{ data: 'sn' },
+				{ data: 'company_name' },
 				{ data: 'account_number' },
+				{ data: 'rc_number' },
 				{ data: 'status' },
 				{ data: 'Actions', responsivePriority: -1 },
 			],
@@ -89,7 +91,6 @@ const PaymentTable = (function () {
 
 $(document).ready(function () {
 	let accountDetail = {};
-	let terminal_id = null;
 	let edit = false;
 	PaymentTable.init();
 
@@ -135,17 +136,27 @@ $(document).ready(function () {
 		const data = $(e.relatedTarget).data('account');
 		console.log(data);
 		accountDetail = data ? JSON.parse(atob(data)) : {};
+		console.log(accountDetail);
 		if (Object.keys(accountDetail).length > 0) {
 			$('#accountLabel').html('Edit Account');
 			$('#rc_number').val(accountDetail.rc_number);
 			$('#company_name').val(accountDetail.company_name);
-			$('#kt_datepicker_3').val(accountDetail.incorporation_date);
+			$('#kt_datepicker_3').val(formatDate(accountDetail.incorporation_date));
 			$('#status').val(accountDetail.status);
 			$('#createAccount').html('Update');
 			edit = true;
 		} else {
 			edit = false;
 		}
+	});
+
+	$('#addAccountModal').on('hidden.bs.modal', (e) => {
+		$('#accountLabel').html('Create Account');
+		$('#rc_number').val('');
+		$('#company_name').val('');
+		$('#kt_datepicker_3').val(new Date().toLocaleDateString('en-GB'));
+		$('#status').val('');
+		$('#createAccount').html('Create');
 	});
 
 	$('#deleteAccountModal').on('show.bs.modal', (e) => {
