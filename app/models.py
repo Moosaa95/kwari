@@ -687,6 +687,103 @@ class Account(ModelMixin):
         return accounts_summary
 
 
+class PaymentAccount(ModelMixin):
+    STATUS = (
+        ("inactive", "Inactive"),
+        ("in-use", "In-use"),
+        ("available", "Available"),
+    )
+
+    company_name = models.CharField(max_length=255, unique=True)
+    rc_number = models.CharField(max_length=20, unique=True)
+    account_number = models.CharField(max_length=10, unique=True, null=True)
+    incorporation_date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=12, choices=STATUS, default="available")
+
+    def __str__(self):
+        return self.account_number
+
+    @classmethod
+    def get_payment_accounts(cls):
+        accounts = cls.objects.values("id", "account_number", "status").order_by(
+            "-created_at"
+        )
+        return list(accounts)
+
+    @classmethod
+    def create_payment_account(cls, **kwargs):
+        try:
+            company_name_count = cls.identical_company_name_count(
+                kwargs["company_name"]
+            )
+            if company_name_count > 0:
+                kwargs["company_name"] = (
+                    kwargs["company_name"] + f"_{company_name_count}"
+                )
+            payment_account = cls.objects.create(**kwargs)
+            return payment_account
+        except IntegrityError:
+            print("duplicate")
+            return None
+
+    @classmethod
+    def account_summary(cls):
+        used_accounts = cls.objects.filter(status="in-use").count()
+        available_accounts = cls.objects.filter(status="available").count()
+        inactive_accounts = cls.objects.filter(status="inactive").count()
+
+        return {
+            "used_accounts": used_accounts,
+            "available_accounts": available_accounts,
+            "inactive_accounts": inactive_accounts,
+        }
+
+    @classmethod
+    def get_available_account(cls):
+        accounts = cls.objects.filter(status="available")
+        if len(accounts) < 1:
+            return None
+        return accounts[0]
+
+    @classmethod
+    def update_payment_account(cls, id, **kwargs):
+        # TODO: change implementation !
+        try:
+            update_fields = []
+            payment_account = cls.objects.get(id=id)
+            if "account_number" in kwargs:
+                payment_account.account_number = kwargs["account_number"]
+                update_fields.append("account_number")
+            else:
+                payment_account.company_name = kwargs["company_name"]
+                payment_account.rc_number = kwargs["rc_number"]
+                payment_account.incorporation_date = kwargs["incorporation_date"]
+                payment_account.status = kwargs["status"]
+                update_fields = [
+                    "company_name",
+                    "rc_number",
+                    "incorporation_date",
+                    "status",
+                ]
+            payment_account.save(update_fields=update_fields)
+            return payment_account
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def delete_payment_account(cls, id, **kwargs):
+        try:
+            payment_account = cls.objects.get(id=id)
+            payment_account.delete()
+            return True
+        except cls.DoesNotExist:
+            return False
+
+    @classmethod
+    def identical_company_name_count(cls, company_name):
+        return cls.objects.filter(company_name=company_name).count()
+
+
 class ReferenceNumbers(models.Model):
     reference_number = models.CharField(max_length=10, unique=True)
 
