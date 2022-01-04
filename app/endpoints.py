@@ -259,10 +259,10 @@ class CreatePaymentAccount(APIView):
 
         if incorporation_date:
             incorporation_date = datetime.datetime.strptime(
-                incorporation_date, "%d/%m/%Y"
+                incorporation_date, "%m/%d/%Y"
             ).strftime("%Y-%m-%d")
 
-        url = settings.AGGREGATOR_URL + "/api/vfd_create_company_account"
+        url = settings.AGGREGATOR_URL + "api/vfd_create_corporate_account"
         data = dict(
             rc_number=rc_number,
             company_name=company_name,
@@ -310,7 +310,6 @@ class CreatePaymentAccount(APIView):
                     )
                     if update:
                         return JsonResponse(data={"status": True}, safe=False)
-                    print("update failed?????")
                     transaction.set_rollback(True)
                     return JsonResponse(
                         data={"status": False, "message": "account update failed"},
