@@ -108,6 +108,11 @@ class ActivityLogs(models.Model):
         return data
 
 
+def validate_length(value):
+    if len(str(value)) != 11:
+        raise ValidationError(_("bvn must be 11 digits"))
+
+
 class Agent(ModelMixin):
     """
     Model to store agents bio data that use xchangebox payrep platform.
@@ -121,11 +126,14 @@ class Agent(ModelMixin):
     gender = models.CharField(
         max_length=50, choices=GENDER_CHOICES, blank=True, null=True
     )
-    business_name = models.CharField(max_length=255, blank=True, null=True)
     mobile_number = models.CharField(max_length=12, unique=True)
+    bvn = models.BigIntegerField(unique=True, validators=[validate_length], null=True)
+    date_of_birth = models.DateField(default=timezone.now)
     email = models.EmailField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255)
     state = models.CharField(max_length=10, null=True, blank=True)
+    can_request_loan = models.BooleanField(default=False)
+    can_request_discount = models.BooleanField(default=False)
     status = models.BooleanField(default=True)
 
     objects = models.Manager()
@@ -144,8 +152,9 @@ class Agent(ModelMixin):
         with transaction.atomic():
             try:
                 pin = kwargs.pop("pin")
+                account_number = kwargs["account_number"]
+                del kwargs["account_number"]
                 agent = cls.objects.create(**kwargs)
-                account_number = kwargs["mobile_number"]
                 account = Account.create_account(
                     account_number=account_number, agent=agent, pin=pin
                 )
@@ -260,13 +269,9 @@ class Agent(ModelMixin):
 class AccountLogin(models.Model):
     username = models.CharField(max_length=12, unique=True)
     password = models.CharField(max_length=255, null=True, blank=True)
-    device_id = models.CharField(max_length=255, null=True, blank=True)
-    transaction_pin = models.CharField(max_length=255, null=True, blank=True)
     pin = models.CharField(max_length=255, null=True, blank=True)
-    device_reg_pin = models.CharField(max_length=255, null=True, blank=True)
     account = models.OneToOneField("Account", on_delete=models.CASCADE)
     status = models.BooleanField(default=True)
-    session_id = models.CharField(max_length=255, null=True, blank=True)
 
     objects = models.Manager()
 
@@ -316,7 +321,7 @@ class AccountLogin(models.Model):
             return False
 
     @classmethod
-    def login(cls, request, username=None, password=None, device_id=None):
+    def login(cls, request, username=None, password=None):
         try:
             credentials = cls.objects.get(username=username)
             request.session["account_id"] = credentials.account_id
@@ -324,20 +329,16 @@ class AccountLogin(models.Model):
             if credentials.pin:
                 if credentials.pin == cls.hash_password(password):
                     url = "/agent/change_password"
-                    return {"status": True, "url": url, "device_id": device_id}
+                    return {"status": True, "url": url}
                 else:
                     message = "Your OTP is wrong."
                     return {"status": False, "message": message}
             else:
-                if credentials.device_id and credentials.device_id == device_id:
-                    if credentials.password == cls.hash_password(password):
-                        url = "/agent/wallet"
-                        return {"status": True, "url": url}
-                    else:
-                        message = "Your password is incorrect"
-                        return {"status": False, "message": message}
+                if credentials.password == cls.hash_password(password):
+                    url = "/agent/home"
+                    return {"status": True, "url": url}
                 else:
-                    message = "Your device is not registered."
+                    message = "Your password is incorrect"
                     return {"status": False, "message": message}
         except cls.DoesNotExist:
             message = "Username is incorrect."
@@ -388,19 +389,14 @@ class AccountLogin(models.Model):
         #     return None
 
     @classmethod
-    def change_password(
-        cls, username=None, password=None, device_id=None, transaction_pin=None
-    ):
+    def change_password(cls, username=None, password=None):
         try:
             credentials = cls.objects.get(username=username)
             if credentials.pin:
                 password = cls.hash_password(password)
-                transaction_pin = cls.hash_password(transaction_pin)
                 update = cls.update_credentials(
                     username=username,
                     password=password,
-                    transaction_pin=transaction_pin,
-                    device_id=device_id,
                     pin=None,
                 )
                 if update:
@@ -422,10 +418,6 @@ class Account(ModelMixin):
     TYPE_CHOICES = (("primary", "primary"), ("secondary", "secondary"))
 
     account_number = models.CharField(max_length=12, unique=True)
-    bank_account_number = models.CharField(max_length=255, null=True, blank=True)
-    bank_name = models.CharField(max_length=255, null=True, blank=True)
-    bank_code = models.CharField(max_length=255, null=True, blank=True)
-    account_type = models.CharField(max_length=10, default="primary")
     balance = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     status = models.BooleanField(default=False)
 
@@ -457,7 +449,7 @@ class Account(ModelMixin):
                     account_number=kwargs["account_number"], agent=kwargs["agent"]
                 )
                 AccountLogin.create_login(
-                    username=kwargs["account_number"],
+                    username=kwargs["agent"].mobile_number,
                     pin=kwargs["pin"],
                     account=account,
                 )
@@ -1122,6 +1114,7 @@ class Product(ModelMixin):
     stock_date = models.DateTimeField(default=timezone.now)
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
+    service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     objects = models.Manager()
 
     class Meta:

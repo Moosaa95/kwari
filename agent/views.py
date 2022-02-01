@@ -23,10 +23,66 @@ from django_select2.forms import *
 
 # Local
 from agent.models import *
+from .forms import *
+from .mixins import LoginRequiredMixin
 
 # from agent.forms import *
 # from agent.functions import *
-from app.models import CategoryImage, Tag, Product
+from app.models import CategoryImage, Tag, Product, AccountLogin, Agent
+
+
+class AgentLogin(FormView):
+    form_class = AgentLoginForm
+    template_name = "agent_login.html"
+    success_url = "login"
+
+    def form_valid(self, form):
+        username = form.cleaned_data["username"]
+        password = form.cleaned_data["password"]
+        login = AccountLogin.login(self.request, username=username, password=password)
+        print(login)
+        return JsonResponse(data=login)
+
+    def form_invalid(self, form):
+        message = form.errors
+        return JsonResponse(data={"status": False, "message": message})
+
+
+class AgentLogout(LoginRequiredMixin, View):
+    def get(self, request):
+
+        if "account_id" in self.request.session:
+            del request.session["account_id"]
+            request.session.flush()
+            return HttpResponseRedirect("/agent/login")
+        else:
+            template = "agent_login.html"
+            message = "The user is not signed in"
+            context = {"message": message}
+        return render(request, template, context)
+
+
+class ChangePassword(FormView):
+    form_class = ChangePasswordForm
+    template_name = "agent_change_password.html"
+    success_url = "change_password"
+
+    def form_valid(self, form):
+        confirm_password = form.cleaned_data["confirm_password"]
+        password = form.cleaned_data["password"]
+        if confirm_password == password:
+            update = AccountLogin.change_password(
+                username=self.request.session["username"],
+                password=password,
+            )
+            return JsonResponse(data=update)
+        else:
+            message = "Passwords do not match"
+            return JsonResponse(data={"status": False, "message": message})
+
+    def form_invalid(self, form):
+        message = form.errors
+        return JsonResponse(data={"status": False, "message": message})
 
 
 class Home(View):

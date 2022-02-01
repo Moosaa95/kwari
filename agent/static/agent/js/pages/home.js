@@ -30,6 +30,14 @@ $(document).ready(function () {
 	});
 	rebuildCarousel(tagCarousel);
 
+	$('.owl-nav').each((_, obj) => {
+		obj.style.display = 'none';
+	});
+
+	$('.owl-dots').each((_, obj) => {
+		obj.style.display = 'none';
+	});
+
 	if (latest) {
 		$.ajax({
 			url: '/app/get_home_images',
