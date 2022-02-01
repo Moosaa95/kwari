@@ -679,6 +679,73 @@ class Account(ModelMixin):
         return accounts_summary
 
 
+class PaymentAccount(ModelMixin):
+    STATUS = (
+        ("inactive", "Inactive"),
+        ("in-use", "In-use"),
+        ("available", "Available"),
+    )
+    account_number = models.CharField(max_length=10, unique=True)
+    status = models.CharField(max_length=12, choices=STATUS, default="available")
+
+    def __str__(self):
+        return self.account_number
+
+    @classmethod
+    def get_payment_accounts(cls):
+        accounts = cls.objects.values("id", "account_number", "status").order_by(
+            "-created_at"
+        )
+        return list(accounts)
+
+    @classmethod
+    def create_payment_account(cls, **kwargs):
+        try:
+            payment_account = cls.objects.create(**kwargs)
+            return payment_account
+        except IntegrityError:
+            return None
+
+    @classmethod
+    def account_summary(cls):
+        used_accounts = cls.objects.filter(status="in-use").count()
+        available_accounts = cls.objects.filter(status="available").count()
+        inactive_accounts = cls.objects.filter(status="inactive").count()
+
+        return {
+            "used_accounts": used_accounts,
+            "available_accounts": available_accounts,
+            "inactive_accounts": inactive_accounts,
+        }
+
+    @classmethod
+    def get_available_account(cls):
+        accounts = cls.objects.filter(status="available")
+        if len(accounts) < 1:
+            return None
+        return accounts[0]
+
+    @classmethod
+    def update_payment_account(cls, id, **kwargs):
+        try:
+            payment_account = cls.objects.get(id=id)
+            payment_account.account_number = kwargs["account_number"]
+            payment_account.status = kwargs["status"]
+            payment_account.save(update_fields=["account_number", "status"])
+            return payment_account
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def delete_payment_account(cls, id, **kwargs):
+        try:
+            payment_account = cls.objects.get(id=id)
+            payment_account.delete()
+            return True
+        except cls.DoesNotExist:
+            return False
+
+
 class ReferenceNumbers(models.Model):
     reference_number = models.CharField(max_length=10, unique=True)
 
@@ -729,27 +796,27 @@ class Transaction(ModelMixin):
         ("debit", "debit"),
     )
 
-    agent = models.ForeignKey(Agent, on_delete=models.CASCADE)
+    agent = models.ForeignKey(Agent, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(
         "Product", on_delete=models.SET_NULL, null=True, blank=True
     )
     quantity = models.IntegerField(default=0)
     amount = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     reference_number = models.CharField(max_length=10, unique=True)
-    third_party_ref = models.CharField(max_length=255, null=True, blank=True)
     account_number = models.CharField(max_length=255, null=True, blank=True)
     fi = models.CharField(max_length=255, null=True, blank=True)
     remarks = models.CharField(max_length=255, null=True, blank=True)
+    shipping_address = models.CharField(max_length=255, null=True, blank=True)
+    mobile_number = models.CharField(max_length=11)
 
-    charges = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
 
     transaction_type = models.CharField(max_length=255, choices=TXN_TYPE)
     transaction_description = models.CharField(max_length=255, null=True, blank=True)
     transaction_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-    is_refunded = models.BooleanField(default=False)
 
     objects = models.Manager()
 
@@ -759,7 +826,6 @@ class Transaction(ModelMixin):
             models.Index(
                 fields=[
                     "reference_number",
-                    "third_party_ref",
                     "agent",
                     "product",
                 ]
@@ -785,7 +851,7 @@ class Transaction(ModelMixin):
         queryset = None
         fields = [
             "transaction_date",
-            "agent__name",
+            # "agent__name",
             "product__name",
             "product__code",
             "product_id",
@@ -793,16 +859,12 @@ class Transaction(ModelMixin):
             "quantity",
             "transaction_description",
             "amount",
-            "balance_after",
-            "charges",
-            "third_party_ref",
+            "price",
             "status",
             "reference_number",
             "remarks",
-            "balance_before",
             "transaction_type",
             "transaction_date",
-            "is_refunded",
         ]
 
         if conditions:
@@ -1107,14 +1169,13 @@ class Product(ModelMixin):
     code = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)
-    unit_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    agent_price = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    price_structure = models.TextField(blank=True)
     quantity_left = models.IntegerField(default=0)
     in_stock = models.BooleanField(default=True)
     stock_date = models.DateTimeField(default=timezone.now)
     sold_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField("Tag", blank=True)
-    service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    # service_charge = models.DecimalField(default=0, max_digits=19, decimal_places=2)
     objects = models.Manager()
 
     class Meta:
@@ -1129,9 +1190,15 @@ class Product(ModelMixin):
     @classmethod
     def create_product(cls, **kwargs):
         try:
-            product = cls.objects.create(**kwargs)
+            # product = cls.objects.create(**kwargs)
+            tags = kwargs.pop("tags")
+            product = cls(**kwargs)
+            tag = Tag.get_tag(id=tags)
+            product.save()
+            product.tags.add(tag)
             return product
         except IntegrityError as e:
+            print(e)
             return {"product": None, "message": e.args[0]}
 
     @classmethod
@@ -1173,8 +1240,7 @@ class Product(ModelMixin):
             "code",
             "quantity",
             "category__name",
-            "unit_price",
-            "agent_price",
+            "price_structure",
             "quantity_left",
             "in_stock",
             "stock_date",
@@ -1183,9 +1249,13 @@ class Product(ModelMixin):
         ]
 
         if type(in_stock) is bool:
-            products = cls.objects.filter(in_stock=True).values(*values)
+            products = (
+                cls.objects.filter(in_stock=True)
+                .values(*values)
+                .order_by("-created_at")
+            )
         else:
-            products = cls.objects.values(*values)
+            products = cls.objects.values(*values).order_by("-created_at")
         return list(products)
 
     @classmethod
@@ -1251,7 +1321,7 @@ class ProductImage(AbstractImage):
         values = [
             "product__id",
             "product__name",
-            "product__agent_price",
+            "product__price_structure",
             "product__quantity_left",
             "image",
         ]
@@ -1317,6 +1387,7 @@ class Tag(ModelMixin):
         tags = None
         if "all" in kwargs:
             tags = cls.objects.values(
+                "id",
                 "name",
                 "tag_id",
             )
