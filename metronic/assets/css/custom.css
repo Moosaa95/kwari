@@ -45,3 +45,80 @@ table td {
 .datepicker {
     z-index: 1051 !important;
 }
+
+#notifier {
+    z-index: 1051;
+    position: absolute;
+    right: -30%;
+    top: 2%;
+    background: #5ccab7;
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px;
+    display: none;
+}
+
+#notifier button {
+    border: 0;
+    cursor: pointer;
+    color: #fff;
+    font-size: 18px;
+    outline: 0;
+    background: #5ccab7;
+    float: right;
+}
+
+#notifier div {
+    width: 300px;
+}
+
+#notifier p{
+    margin: 0;
+    font-weight: 600;
+    text-align: center;
+}
+
+@keyframes slide-in {
+    from{
+        right: -30%;
+        opacity: 0;
+    }
+    to{
+        right: 10%;
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out {
+    from{
+        right: 10%;
+        opacity: 1;
+    }
+    to{
+        right: -30%;
+        opacity: 0;
+    }
+}
+
+.custom-btn {
+    height: 25px; 
+    width: 25px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 0;
+}
+
+.custom-btn i {
+    padding: 0;
+    font-size: 12px !important;
+}
+
+.modal-content{
+    overflow-y: scroll;
+}
+
+.alert{
+    z-index: 1100 !important;
+}

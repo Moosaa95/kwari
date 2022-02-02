@@ -30,6 +30,7 @@ from .models import (
     Agent,
     Account,
     AccountLogin,
+    PaymentAccount,
     ReferenceNumbers,
     Transaction,
     Product,
@@ -58,7 +59,6 @@ class CreateAgent(APIView):
             data["date_of_birth"] = datetime.datetime.strptime(
                 data["date_of_birth"], "%m/%d/%Y"
             )
-            print(data)
             request_data = {"bvn": data["bvn"], "dob": data["date_of_birth"]}
             account_number = get_random_string(
                 length=11, allowed_chars="1234567890"
@@ -129,7 +129,8 @@ class GetProducts(APIView):
 class CreateProduct(APIView):
     @staticmethod
     def post(request):
-        data = dict(request.POST.dict())
+        data = json.loads(request.data.get("formData", dict()))
+        data["price_structure"] = json.dumps(data["price_structure"])
         if data["in_stock"] == "on":
             data["in_stock"] = True
         else:
@@ -172,57 +173,193 @@ class GetHomeProductsImages(APIView):
 class InitiateTransaction(APIView):
     def post(self, request):
         quantity = int(request.data.get("quantity", 1))
-        amount = Decimal(request.data.get("amount", None))
         fi = "vfd"
         transaction_type = "debit"
         transaction_description = request.data.get("transaction_description", None)
         product_id = request.data.get("product_id", None)
-        account_id = request.session["account_id"]
-        service_charge = Decimal(request.data.get("service_charge", 0))
+        price = Decimal(request.data.get("price", 0))
         payment_type = request.data.get("payment_type", None)
+        shipping_address = request.data.get("shipping_address", None)
+        mobile_number = request.data.get("mobile_number", None)
         transaction_date = timezone.now()
+        # url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
 
-        print("#####3")
-        print(account_id)
-        url = settings.AGGREGATOR_URL + "/api/"  # TODO: create url on aggregator
+        payable_amount = quantity * price
 
-        payable_amount = (quantity * amount) + service_charge
-
-        account = Account.get_account(account_id=account_id)
+        # account = Account.get_account(account_id=account_id)
 
         reference_number = ReferenceNumbers.create_reference_number()
 
-        details = {
-            "agent": account.agent,
-            "product_id": product_id,
-            "quantity": quantity,
-            "amount": payable_amount,
-            "reference_number": reference_number,
-            "account_number": request.session["username"],
-            "fi": "vfd",
-            "transaction_type": transaction_type,
-            "transaction_description": transaction_description,
-            "transaction_date": transaction_date,
-            "balance_before": account.balance,
-        }
+        payment_account = PaymentAccount.get_available_account()
 
-        new_transaction = Transaction.create_transaction(**details)
-
-        if new_transaction:
-            if payment_type == "wallet transfer":
-                request_data = {
-                    "account_number": account_number,
-                    "payable_amount": payable_amount,
-                }
-
-                # TODO: send required fields and value to aggregator for forwarding
-
-            else:
-                return JsonResponse(data={"status": True})
-        else:
+        if payment_account is None:
             return JsonResponse(
                 data={
                     "status": False,
                     "message": "An error has occurred, please try again",
                 }
             )
+
+        details = {
+            "product_id": product_id,
+            "quantity": quantity,
+            "amount": payable_amount,
+            "reference_number": reference_number,
+            "account_number": payment_account.account_number,
+            "fi": "vfd",
+            "transaction_type": transaction_type,
+            "transaction_description": transaction_description,
+            "transaction_date": transaction_date,
+            "shipping_address": shipping_address,
+            "mobile_number": mobile_number,
+            "price": price,
+        }
+
+        new_transaction = Transaction.create_transaction(**details)
+
+        if new_transaction:
+            payment_account = PaymentAccount.update_payment_account_status(
+                payment_account.id, "in-use"
+            )
+            if payment_account:
+                return JsonResponse(
+                    data={"status": True, "account_number": details["account_number"]}
+                )
+            return JsonResponse(
+                data={
+                    "status": False,
+                    "message": "Account update failed",
+                }
+            )
+
+        return JsonResponse(
+            data={
+                "status": False,
+                "message": "An error has occurred, please try again",
+            }
+        )
+
+
+class GetPaymentAccounts(APIView):
+    @staticmethod
+    def get(request):
+        payment_accounts = PaymentAccount.get_payment_accounts()
+        return JsonResponse(data=payment_accounts, safe=False)
+
+
+class CreatePaymentAccount(APIView):
+    @staticmethod
+    def post(request):
+        rc_number = request.data.get("rc_number", None)
+        company_name = request.data.get("company_name", None)
+        incorporation_date = request.data.get("incorporation_date", None)
+        status = request.data.get("status", "available")
+        if status == "":
+            status = "available"
+
+        if incorporation_date:
+            incorporation_date = datetime.datetime.strptime(
+                incorporation_date, "%m/%d/%Y"
+            ).strftime("%Y-%m-%d")
+
+        url = settings.AGGREGATOR_URL + "api/vfd_create_corporate_account"
+        data = dict(
+            rc_number=rc_number,
+            company_name=company_name,
+            incorporation_date=incorporation_date,
+            status=status,
+        )
+
+        with transaction.atomic():
+            payment_account = PaymentAccount.create_payment_account(**data)
+            if not payment_account:
+                return JsonResponse(
+                    data={"status": False, "message": "account creation failed"},
+                    safe=False,
+                )
+
+            try:
+                response = requests.post(
+                    url,
+                    data=json.dumps(data),
+                    headers={
+                        "Content-Type": "application/json",
+                        "Username": settings.MERCHANT_ID,
+                        "Authorization": settings.AUTHORIZATION,
+                    },
+                )
+                if not response.ok:
+                    message = "server error"
+                    transaction.set_rollback(True)
+                    return JsonResponse(
+                        data={"status": False, "message": message}, safe=False
+                    )
+            except requests.exceptions.RequestException:
+                message = "connection error"
+                transaction.set_rollback(True)
+                return JsonResponse(
+                    data={"status": False, "message": message}, safe=False
+                )
+
+            try:
+                response_data = response.json()
+                if "status" in response_data and response_data["status"]:
+                    account_number = response_data["result"]["account_number"]
+                    update = PaymentAccount.update_payment_account(
+                        payment_account.id, account_number=account_number
+                    )
+                    if update:
+                        return JsonResponse(data={"status": True}, safe=False)
+                    transaction.set_rollback(True)
+                    return JsonResponse(
+                        data={"status": False, "message": "account update failed"},
+                        safe=False,
+                    )
+                else:
+                    message = response_data["result"]["message"]
+                    transaction.set_rollback(True)
+                    return JsonResponse(
+                        data={"status": False, "message": message}, safe=False
+                    )
+            except Exception:
+                message = "decode error"
+                transaction.set_rollback(True)
+                return JsonResponse(
+                    data={"status": False, "message": message}, safe=False
+                )
+
+
+class UpdatePaymentAccount(APIView):
+    @staticmethod
+    def post(request):
+        rc_number = request.data.get("rc_number", None)
+        company_name = request.data.get("company_name", None)
+        incorporation_date = request.data.get("incorporation_date", None)
+        status = request.data.get("status", "available")
+        account_id = request.data.get("id", None)
+        if status == "":
+            status = "available"
+        if incorporation_date:
+            incorporation_date = datetime.datetime.strptime(
+                incorporation_date, "%Y-%m-%d"
+            )
+        data = dict(
+            rc_number=rc_number,
+            company_name=company_name,
+            incorporation_date=incorporation_date,
+            status=status,
+        )
+        payment_account = PaymentAccount.update_payment_account(account_id, **data)
+        if payment_account:
+            return JsonResponse(data={"status": True}, safe=False)
+        return JsonResponse(data={"status": False}, safe=False)
+
+
+class DeletePaymentAccount(APIView):
+    @staticmethod
+    def post(request):
+        account_id = request.data.get("account_id", None)
+        payment_account = PaymentAccount.delete_payment_account(account_id)
+        if payment_account:
+            return JsonResponse(data={"status": True}, safe=False)
+        return JsonResponse(data={"status": False}, safe=False)

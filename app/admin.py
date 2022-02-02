@@ -11,6 +11,7 @@ from app.models import (
     CategoryImage,
     Tag,
     ProductImage,
+    PaymentAccount,
 )
 
 admin.site.register(Product)
@@ -18,6 +19,7 @@ admin.site.register(ProductImage)
 admin.site.register(Category)
 admin.site.register(CategoryImage)
 admin.site.register(Account)
+admin.site.register(PaymentAccount)
 admin.site.register(AccountLogin)
 admin.site.register(Agent)
 admin.site.register(Activity)

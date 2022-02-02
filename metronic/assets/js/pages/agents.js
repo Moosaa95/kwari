@@ -77,7 +77,6 @@ const AgentsTable = (function () {
 		},
 	};
 })();
-
 $(document).ready(function () {
 	AgentsTable.init();
 	$('#state').select2();
@@ -104,15 +103,21 @@ $(document).ready(function () {
 				if (response.status) {
 					addAgentModal.modal('hide');
 					AgentsTable.refresh();
-					$.notify({
-						// options
-						icon: 'glyphicon glyphicon-warning-sign',
-						title: '',
-						message: 'Agent has been created successfully',
-					});
-					alert(
-						`Copy credentials and send to agent \n Username: ${response.username} \n Pin: ${response.pin}`
+					// $.notify({
+					// 	// options
+					// 	icon: 'glyphicon glyphicon-warning-sign',
+					// 	title: '',
+					// 	message: 'Agent has been created successfully',
+					// });
+					// alert(
+					// 	`Copy credentials and send to agent \n Username: ${response.username} \n Pin: ${response.pin}`
+					// );
+					$('#agent-message').text(
+						'Success! Copy credentials and send to agent'
 					);
+					$('#agent-username').text(`Username: ${response.username}`);
+					$('#agent-pin').text(`Pin: ${response.pin}`);
+					showAgentCredentials();
 				} else {
 					addAgentModal.modal('hide');
 					$.notify(
