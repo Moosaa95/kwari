@@ -697,11 +697,13 @@ class PaymentAccount(ModelMixin):
         ("available", "Available"),
     )
 
-    company_name = models.CharField(max_length=255, unique=True)
-    rc_number = models.CharField(max_length=20, unique=True)
+    company_name = models.CharField(max_length=255, null=True, blank=True)
+    rc_number = models.CharField(max_length=20, null=True, blank=True)
     account_number = models.CharField(max_length=10, unique=True, null=True)
     incorporation_date = models.DateField(default=timezone.now)
     status = models.CharField(max_length=12, choices=STATUS, default="available")
+
+    objects = models.Manager()
 
     def __str__(self):
         return self.account_number
@@ -791,6 +793,11 @@ class PaymentAccount(ModelMixin):
     def identical_company_name_count(cls, company_name):
         return cls.objects.filter(company_name=company_name).count()
 
+    @classmethod
+    def toggle_account_status(cls, account_number, status):
+        up = cls.objects.filter(account_number=account_number).update(status=status)
+        return up
+
 
 class ReferenceNumbers(models.Model):
     reference_number = models.CharField(max_length=10, unique=True)
@@ -852,18 +859,21 @@ class Transaction(ModelMixin):
     reference_number = models.CharField(max_length=10, unique=True)
     account_number = models.CharField(max_length=255, null=True, blank=True)
     fi = models.CharField(max_length=255, null=True, blank=True)
-    remarks = models.CharField(max_length=255, null=True, blank=True)
     shipping_address = models.CharField(max_length=255, null=True, blank=True)
     mobile_number = models.CharField(max_length=11)
-
-    # balance_before = models.DecimalField(default=0, max_digits=19, decimal_places=2)
-    # balance_after = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    stock_before = models.IntegerField(default=0)
+    stock_after = models.IntegerField(default=0)
+    amount_paid = models.DecimalField(default=0, max_digits=19, decimal_places=2)
+    sender_account = models.CharField(max_length=255, null=True, blank=True)
+    sender_name = models.CharField(max_length=255, null=True, blank=True)
+    bank_code = models.CharField(max_length=255, null=True, blank=True)
+    remarks = models.CharField(max_length=255, null=True, blank=True)
 
     transaction_type = models.CharField(max_length=255, choices=TXN_TYPE)
     transaction_description = models.CharField(max_length=255, null=True, blank=True)
     transaction_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-
+    is_refund = models.BooleanField(default=False)
     objects = models.Manager()
 
     class Meta:
@@ -893,11 +903,17 @@ class Transaction(ModelMixin):
             return False
 
     @classmethod
+    def get_transaction(cls, **kwargs):
+        try:
+            txn = cls.objects.get(**kwargs)
+            return txn
+        except cls.DoesNotExist:
+            return False
+
+    @classmethod
     def get_transactions(cls, conditions=None, count=None):
         queryset = None
         fields = [
-            "transaction_date",
-            # "agent__name",
             "product__name",
             "product__code",
             "product_id",
@@ -909,8 +925,17 @@ class Transaction(ModelMixin):
             "status",
             "reference_number",
             "remarks",
+            "stock_before",
+            "stock_after",
             "transaction_type",
             "transaction_date",
+            "amount_paid",
+            "sender_account",
+            "sender_name",
+            "shipping_address",
+            "mobile_number",
+            "is_refund",
+            "remarks",
         ]
 
         if conditions:
@@ -930,9 +955,17 @@ class Transaction(ModelMixin):
         return list(queryset)
 
     @classmethod
-    def update_transaction_details(cls, reference_number, **kwargs):
-        update = cls.objects.filter(reference_number=reference_number).update(**kwargs)
-        return update
+    def update_transaction_details(cls, **kwargs):
+        if "account_number" in kwargs:
+            account_number = kwargs.pop("account_number")
+            update = cls.objects.filter(account_number=account_number).update(**kwargs)
+            return update
+        else:
+            reference_number = kwargs.pop("reference_number")
+            update = cls.objects.filter(reference_number=reference_number).update(
+                **kwargs
+            )
+            return update
 
     @classmethod
     def create_funding_transaction(cls, **kwargs):

@@ -38,4 +38,9 @@ urlpatterns = [
         DeletePaymentAccount.as_view(),
         name="delete_payment_account",
     ),
+    path(
+        "get_transactions",
+        TransactionFilter.as_view(),
+        name="get_transactions",
+    ),
 ]

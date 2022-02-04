@@ -1,7 +1,7 @@
 from django.urls import path
 
 from app.views import TransactionsView
-from app.endpoints import InitiateTransaction
+from app.endpoints import InitiateTransaction, PaymentNotification
 from .views import Home, ProductDetail, AgentLogin, ChangePassword, AgentLogout
 
 urlpatterns = [
@@ -15,4 +15,5 @@ urlpatterns = [
     path(
         "create_transaction", InitiateTransaction.as_view(), name="create_transaction"
     ),
+    path("bank_notification", PaymentNotification.as_view(), name="bank_notification"),
 ]

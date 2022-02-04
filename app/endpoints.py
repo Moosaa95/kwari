@@ -172,6 +172,8 @@ class GetHomeProductsImages(APIView):
 
 class InitiateTransaction(APIView):
     def post(self, request):
+        print("======================")
+        print(request.data)
         quantity = int(request.data.get("quantity", 1))
         fi = "vfd"
         transaction_type = "debit"
@@ -217,14 +219,19 @@ class InitiateTransaction(APIView):
 
         new_transaction = Transaction.create_transaction(**details)
 
-        if new_transaction:
-            payment_account = PaymentAccount.update_payment_account_status(
-                payment_account.id, "in-use"
+        if not new_transaction:
+            return JsonResponse(
+                data={
+                    "status": False,
+                    "message": "An error has occurred, please try again",
+                }
             )
-            if payment_account:
-                return JsonResponse(
-                    data={"status": True, "account_number": details["account_number"]}
-                )
+
+        up = PaymentAccount.toggle_account_status(
+            payment_account.account_number, "in-use"
+        )
+
+        if not up:
             return JsonResponse(
                 data={
                     "status": False,
@@ -233,11 +240,65 @@ class InitiateTransaction(APIView):
             )
 
         return JsonResponse(
-            data={
-                "status": False,
-                "message": "An error has occurred, please try again",
-            }
+            data={"status": True, "account_number": details["account_number"]}
         )
+
+
+class PaymentNotification(APIView):
+    """
+    create new withdrawal transaction notice.
+    """
+
+    def post(self, request):
+        data = dict()
+        amount = Decimal(request.data.get("amount", 0))
+        account_number = request.data.get("account_number", None)
+        account = Account.get_account(bank_account_number=account_number)
+        sender_account = request.data.get("originator_account_number", None)
+        sender_name = request.data.get("originator_account_name", None)
+        bank_code = request.data.get("originator_bank", None)
+        remarks = request.data.get("originator_narration", None)
+
+        if not account:
+            message = {
+                "response_code": "01",
+                "error": True,
+                "status": False,
+                "account_number": account_number,
+                "message": "Account number not assigned.",
+            }
+            return Response(message, status=status.HTTP_200_OK)
+
+        details = dict(
+            amount_paid=amount,
+            account_number=account_number,
+            sender_account=sender_account,
+            sender_name=sender_name,
+            bank_code=bank_code,
+            remarks=remarks,
+        )
+        txn = Transaction.get_transaction(account_number=account_number)
+
+        if not txn:
+            message = {
+                "response_code": "01",
+                "error": True,
+                "status": False,
+                "account_number": account_number,
+                "message": "Transaction with Account number does not exist.",
+            }
+            return Response(message, status=status.HTTP_200_OK)
+
+        Transaction.update_transaction_details(**details)
+        PaymentAccount.toggle_account_status(account_number, "available")
+        message = {
+            "response_code": "00",
+            "message": "Transaction successfully",
+            "account_number": account_number,
+            "error": False,
+            "status": True,
+        }
+        return Response(message, status=status.HTTP_201_CREATED)
 
 
 class GetPaymentAccounts(APIView):
@@ -363,3 +424,84 @@ class DeletePaymentAccount(APIView):
         if payment_account:
             return JsonResponse(data={"status": True}, safe=False)
         return JsonResponse(data={"status": False}, safe=False)
+
+
+class GetTransactionSearchOptions(APIView):
+    def post(self, request):
+        data = dict(
+            # agents=Agent.fetch_agent(),
+            # accounts=Account.get_accounts(),
+            # services=Service.get_services(),
+        )
+        return Response(data=data, status=status.HTTP_200_OK)
+
+
+class TransactionFilter(APIView):
+    """filters transactions for transaction search, agent transaction search, report generation"""
+
+    def post(self, request, *args, **kwargs):
+        count = request.POST.get("count", None)
+        filters = request.POST.get("filter", None)
+        name = request.POST.get("name", None)
+        report = request.POST.get("report", None)
+        or_condition = Q()
+        and_condition = Q()
+        combined_condition = Q()
+
+        filtered = []
+
+        if count:
+            transactions = Transaction.get_transactions(count=count)
+            return JsonResponse(data=transactions, safe=False)
+
+        if not filters:
+            return JsonResponse(data={"status": True, "data": filtered})
+
+        filters = json.loads(filters)
+
+        if len(filters) == 0:
+            return JsonResponse(data={"status": True, "data": filtered})
+
+        if "date" in filters:
+            filters["created_at__startswith"] = datetime.datetime.strptime(
+                filters.pop("date"), "%m/%d/%Y"
+            ).date()
+
+        if "end" in filters and "start" in filters:
+            start_date = datetime.datetime.strptime(
+                filters.pop("start"), "%m/%d/%Y"
+            ).date()
+            end_date = datetime.datetime.strptime(
+                filters.pop("end"), "%m/%d/%Y"
+            ).date() + datetime.timedelta(days=1)
+            filters["created_at__range"] = [start_date, end_date]
+
+        if "agent" in filters:
+            filters["account__agent__id"] = filters.pop("agent")
+
+        if "terminal_id" in filters:
+            filters["terminal_id"] = filters.pop("terminal_id")
+
+        if "no_third_party_ref" in filters:
+            filters["rrn__isnull"] = True
+            del filters["no_third_party_ref"]
+
+        if "reference_number" in filters:
+            reference_number = filters.pop("reference_number")
+            filters["reference_number__icontains"] = reference_number
+            or_condition.add(Q(third_party_ref__icontains=reference_number), Q.OR)
+            or_condition.add(
+                Q(parent__reference_number__icontains=reference_number), Q.OR
+            )
+
+        for key, value in filters.items():
+            and_condition.add(Q(**{key: value}), Q.AND)
+
+        combined_condition.add(and_condition, Q.OR)
+        combined_condition.add(or_condition, Q.OR)
+
+        filtered = Transaction.get_transactions(conditions=combined_condition)
+        # filtered = list(queryset)
+        data = {"status": True, "data": filtered}
+
+        return JsonResponse(data=data, safe=False)

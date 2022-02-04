@@ -11,6 +11,8 @@ $(document).ready(function () {
 	let paymentDetails = {};
 	let quantity = 1;
 	let price;
+	console.log("===========================")
+	console.log(product.price_structure)
 	const price_structure = JSON.parse(product.price_structure);
 
 	$.each(product.images, (_, value) => {
