@@ -99,11 +99,11 @@ const TransactionsTable = function(tableData) {
 					targets: -19,
 					render: function(data, type, full, meta) {
 						const status = {
-							paid: {'title': 'Successful', 'class': ' kt-badge--success'},
+							paid: {'title': 'Paid', 'class': ' kt-badge--info'},
 							pending: {'title': 'Pending', 'class': ' kt-badge--warning'},
 							failed: {'title': 'Failed', 'class': ' kt-badge--danger'},
                             packaged: {'title': 'Warning', 'class': 'kt-badge--brand'},
-							collected: {'title': 'Info', 'class': ' kt-badge--info'},
+							collected: {'title': 'Info', 'class': ' kt-badge--success'},
 							// 6: {'title': 'Delivered', 'class': ' kt-badge--danger'},
 							// 7: {'title': 'Canceled', 'class': ' kt-badge--primary'},
 						};

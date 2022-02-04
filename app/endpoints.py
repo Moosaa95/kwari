@@ -253,21 +253,21 @@ class PaymentNotification(APIView):
         data = dict()
         amount = Decimal(request.data.get("amount", 0))
         account_number = request.data.get("account_number", None)
-        account = Account.get_account(bank_account_number=account_number)
+        # account = Account.get_account(bank_account_number=account_number)
         sender_account = request.data.get("originator_account_number", None)
         sender_name = request.data.get("originator_account_name", None)
         bank_code = request.data.get("originator_bank", None)
         remarks = request.data.get("originator_narration", None)
 
-        if not account:
-            message = {
-                "response_code": "01",
-                "error": True,
-                "status": False,
-                "account_number": account_number,
-                "message": "Account number not assigned.",
-            }
-            return Response(message, status=status.HTTP_200_OK)
+        # if not account:
+        #     message = {
+        #         "response_code": "01",
+        #         "error": True,
+        #         "status": False,
+        #         "account_number": account_number,
+        #         "message": "Account number not assigned.",
+        #     }
+        #     return Response(message, status=status.HTTP_200_OK)
 
         details = dict(
             amount_paid=amount,
@@ -276,8 +276,11 @@ class PaymentNotification(APIView):
             sender_name=sender_name,
             bank_code=bank_code,
             remarks=remarks,
+            status="paid",
         )
-        txn = Transaction.get_transaction(account_number=account_number)
+        txn = Transaction.get_transaction(
+            account_number=account_number, status="pending"
+        )
 
         if not txn:
             message = {
